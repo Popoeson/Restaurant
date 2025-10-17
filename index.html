@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TastyBite | Delicious Food at Your Doorstep</title>
+  <style>
+    /* ---------- GLOBAL STYLES ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background-color: #fff;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ---------- HEADER ---------- */
+    header {
+      width: 100%;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 5%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ff6600;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .nav-right button {
+      background: linear-gradient(45deg, #ff8800, #ff5500);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-right button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(255, 102, 0, 0.4);
+    }
+
+    .cart-icon {
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #ff6600;
+      position: relative;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: #ff5500;
+      color: white;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ---------- HERO SECTION ---------- */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 65vh;
+      background: url('https://images.unsplash.com/photo-1600891963937-580b0a7f7f6f?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255, 136, 0, 0.8), rgba(255, 85, 0, 0.7));
+    }
+
+    .hero-content {
+      position: relative;
+      color: white;
+      text-align: center;
+      z-index: 2;
+      max-width: 600px;
+      padding: 0 20px;
+    }
+
+    .hero-content h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    .hero-content p {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .hero-buttons button {
+      background: white;
+      color: #ff6600;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .hero-buttons button:hover {
+      background: #ff6600;
+      color: #fff;
+    }
+
+    /* ---------- MENU SECTION ---------- */
+    .menu-section {
+      padding: 50px 5%;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .menu-header h2 {
+      color: #ff5500;
+      font-size: 1.8rem;
+    }
+
+    .category-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .category-filter button {
+      background: linear-gradient(45deg, #ff8800, #ff5500);
+      border: none;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .category-filter button:hover {
+      background: #ff5500;
+    }
+
+    /* ---------- MENU GRID ---------- */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 25px;
+    }
+
+    .menu-card {
+      background: #fff;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .menu-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .menu-info {
+      padding: 15px;
+    }
+
+    .menu-info h3 {
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #333;
+    }
+
+    .menu-info h3 span {
+      color: #ff6600;
+      font-weight: 600;
+    }
+
+    .menu-info p {
+      font-size: 0.85rem;
+      color: #666;
+      margin: 5px 0 10px;
+    }
+
+    .menu-info button {
+      background: linear-gradient(45deg, #ff8800, #ff5500);
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .menu-info button:hover {
+      transform: scale(1.05);
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      padding: 20px;
+      background: #fff3e6;
+      color: #333;
+      font-size: 0.9rem;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 768px) {
+      .hero-content h1 {
+        font-size: 1.8rem;
+      }
+      .hero {
+        height: 55vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">TastyBite</div>
+    <div class="nav-right">
+      <div class="cart-icon">🛒<span class="cart-count">0</span></div>
+      <button onclick="location.href='login.html'">Login</button>
+      <button onclick="location.href='register.html'">Register</button>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Delicious Food, Right at Your Doorstep</h1>
+      <p>Freshly made meals delivered hot and fast — satisfaction guaranteed!</p>
+      <div class="hero-buttons">
+        <button onclick="location.href='menu.html'">View Menu</button>
+        <button onclick="location.href='register.html'">Sign Up</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU SECTION -->
+  <section class="menu-section">
+    <div class="menu-header">
+      <h2>MENU</h2>
+      <div class="category-filter">
+        <button>All</button>
+        <button>Food</button>
+        <button>Snacks</button>
+        <button>Extras</button>
+        <button>Drinks</button>
+        <button>Shawarma</button>
+        <button>Asun</button>
+      </div>
+    </div>
+
+    <div class="menu-grid" id="menuGrid">
+      <!-- Example food cards -->
+      <div class="menu-card">
+        <img src="https://images.unsplash.com/photo-1604909052743-94e9f0a9b3b8?auto=format&fit=crop&w=800&q=60" alt="Jollof Rice" />
+        <div class="menu-info">
+          <h3>Jollof Rice <span>₦500/per portion</span></h3>
+          <p>Tasty Nigerian jollof served with fried plantain.</p>
+          <button>Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <img src="https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=60" alt="Shawarma" />
+        <div class="menu-info">
+          <h3>Chicken Shawarma <span>₦1500</span></h3>
+          <p>Juicy shawarma wrap with creamy garlic sauce.</p>
+          <button>Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <img src="https://images.unsplash.com/photo-1627308595190-186e228d0977?auto=format&fit=crop&w=800&q=60" alt="Asun" />
+        <div class="menu-info">
+          <h3>Spicy Asun <span>₦1200</span></h3>
+          <p>Grilled goat meat seasoned with hot pepper mix.</p>
+          <button>Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2025 TastyBite Restaurant. All rights reserved.
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    const cartCount = document.querySelector('.cart-count');
+    const addButtons = document.querySelectorAll('.menu-info button');
+    let cartItems = 0;
+
+    addButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        cartItems++;
+        cartCount.textContent = cartItems;
+        alert('Item added to cart!');
+      });
+    });
+  </script>
+</body>
+</html>
