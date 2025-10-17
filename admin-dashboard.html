@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TastyBite | Admin Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      display: flex;
+      background: #f8fafc;
+      color: #333;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 250px;
+      background: #1e293b;
+      color: white;
+      min-height: 100vh;
+      padding: 20px 0;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ff6600;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .admin-profile {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .admin-profile img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+
+    .admin-profile h4 {
+      font-size: 1rem;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      padding: 12px 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .sidebar ul li:hover,
+    .sidebar ul li.active {
+      background: #ff6600;
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: white;
+      display: block;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 20px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .search-box input {
+      padding: 8px 15px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      outline: none;
+      width: 250px;
+    }
+
+    .admin-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .admin-info .notif {
+      font-size: 1.2rem;
+      color: #ff6600;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .notif::after {
+      content: "3";
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      background: red;
+      color: white;
+      font-size: 0.7rem;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* DASHBOARD CARDS */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 1.4rem;
+      color: #ff6600;
+      font-weight: 600;
+    }
+
+    /* RECENT ORDERS */
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      font-size: 1.2rem;
+      color: #1e293b;
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    table th, table td {
+      text-align: left;
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    table th {
+      background: #f9fafb;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      text-transform: capitalize;
+    }
+
+    .delivered { background: #d1fae5; color: #047857; }
+    .processing { background: #fef3c7; color: #92400e; }
+    .pending { background: #fee2e2; color: #991b1b; }
+
+    /* POPULAR ITEMS */
+    .popular-list {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .popular-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .popular-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      margin-right: 15px;
+      object-fit: cover;
+    }
+
+    .popular-item h4 {
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    .popular-item p {
+      font-size: 0.8rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">TastyBite Admin</div>
+    <div class="admin-profile">
+      <img src="https://i.pravatar.cc/100" alt="Admin">
+      <h4>Admin User</h4>
+      <p style="font-size: 0.8rem; color: #ccc;">admin@tastybite.com</p>
+    </div>
+    <ul>
+      <li class="active"><a href="#">Dashboard</a></li>
+      <li><a href="#">Menu Management</a></li>
+      <li><a href="#">Order Management</a></li>
+      <li><a href="../index.html" target="_blank">View Website</a></li>
+      <li><a href="#">Logout</a></li>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search-box">
+        <input type="text" placeholder="Search...">
+      </div>
+      <div class="admin-info">
+        <div class="notif">🔔</div>
+        <span>Admin User</span>
+      </div>
+    </div>
+
+    <h1>Dashboard</h1>
+    <p>Welcome to your admin dashboard</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Revenue</h3>
+        <p>₦48,950</p>
+      </div>
+      <div class="card">
+        <h3>Total Orders</h3>
+        <p>25</p>
+      </div>
+      <div class="card">
+        <h3>Pending Orders</h3>
+        <p>2</p>
+      </div>
+      <div class="card">
+        <h3>Processing Orders</h3>
+        <p>3</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Recent Orders</h2>
+      <table>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Amount</th>
+        </tr>
+        <tr>
+          <td>#25</td>
+          <td>17/10/2025</td>
+          <td><span class="status processing">Processing</span></td>
+          <td>₦2,800</td>
+        </tr>
+        <tr>
+          <td>#24</td>
+          <td>15/10/2025</td>
+          <td><span class="status delivered">Delivered</span></td>
+          <td>₦4,500</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Popular Items</h2>
+      <div class="popular-list">
+        <div class="popular-item">
+          <img src="https://images.unsplash.com/photo-1604909052743-94e9f0a9b3b8?auto=format&fit=crop&w=500&q=60" alt="">
+          <div>
+            <h4>Jollof Rice</h4>
+            <p>Ordered 5 times</p>
+          </div>
+        </div>
+        <div class="popular-item">
+          <img src="https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=500&q=60" alt="">
+          <div>
+            <h4>Chicken Shawarma</h4>
+            <p>Ordered 3 times</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
