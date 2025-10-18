@@ -6,8 +6,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-  import axios from "axios"; // for verifying Paystack payments
-
+import axios from "axios"; // for verifying Paystack and sending Termii requests
 
 dotenv.config();
 const app = express();
@@ -30,6 +29,11 @@ cloudinary.config({
 // ====== PAYSTACK CONFIG ======
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 
+// ====== TERMII CONFIG ======
+const TERMII_API_KEY = process.env.TERMII_API_KEY;
+const TERMII_SENDER_ID = process.env.TERMII_SENDER_ID || "TastyBite";
+const TERMII_API_URL = "https://api.ng.termii.com/api/sms/send";
+
 // ====== Multer Setup ======
 const upload = multer({ dest: "uploads/" });
 
@@ -37,13 +41,12 @@ const upload = multer({ dest: "uploads/" });
 const menuSchema = new mongoose.Schema({
   name: String,
   description: String,
-  category: [String], // <-- now supports multiple categories
+  category: [String],
   price: Number,
   imageUrl: String,
   featured: Boolean,
   createdAt: { type: Date, default: Date.now },
 });
-
 const Menu = mongoose.model("Menu", menuSchema);
 
 // ====== Order Schema ======
@@ -53,13 +56,12 @@ const orderSchema = new mongoose.Schema({
   phone: String,
   address: String,
   junction: String,
-  items: Array, // cart items
+  items: Array,
   totalAmount: Number,
   reference: String,
-  status: { type: String, default: "pending" }, // pending, paid, failed
+  status: { type: String, default: "pending" },
   createdAt: { type: Date, default: Date.now },
 });
-
 const Order = mongoose.model("Order", orderSchema);
 
 // ====== ROUTES ======
@@ -110,7 +112,6 @@ app.post("/api/menu", upload.single("image"), async (req, res) => {
 app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
   try {
     const { name, description, category, price, featured } = req.body;
-
     const categories = Array.isArray(category) ? category : JSON.parse(category);
 
     const updateData = {
@@ -135,6 +136,7 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: "Error updating item", error: err });
   }
 });
+
 // GET single menu item by ID
 app.get("/api/menu/:id", async (req, res) => {
   try {
@@ -156,22 +158,19 @@ app.delete("/api/menu/:id", async (req, res) => {
   }
 });
 
-  
-// ====== Verify Paystack Payment ======
+// ====== Verify Paystack Payment + Send SMS ======
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
 
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET}`,
-      },
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
     });
 
     const data = response.data.data;
 
     if (data.status === "success") {
-      // ✅ Save order in DB
+      // ✅ Save order
       const newOrder = new Order({
         name: orderData.name,
         email: orderData.email,
@@ -186,11 +185,33 @@ app.post("/api/payment/verify", async (req, res) => {
 
       await newOrder.save();
 
-      res.json({ success: true, message: "Payment verified and order saved", order: newOrder });
+      // ✅ Send SMS using Termii
+      const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
+Order ID: ${newOrder._id}.
+Keep this ID safe — your dispatcher will confirm it at delivery.`;
+
+      const smsPayload = {
+        to: orderData.phone,
+        from: TERMII_SENDER_ID,
+        sms: smsMessage,
+        type: "plain",
+        api_key: TERMII_API_KEY,
+        channel: "generic",
+      };
+
+      try {
+        const smsResponse = await axios.post(TERMII_API_URL, smsPayload);
+        console.log("📩 SMS sent:", smsResponse.data);
+      } catch (smsErr) {
+        console.error("❌ Error sending SMS:", smsErr.message);
+      }
+
+      res.json({ success: true, message: "Payment verified, order saved & SMS sent", order: newOrder });
     } else {
       res.status(400).json({ success: false, message: "Payment not successful" });
     }
   } catch (err) {
+    console.error("❌ Payment verification error:", err.message);
     res.status(500).json({ success: false, message: "Error verifying payment", error: err.message });
   }
 });
