@@ -261,6 +261,35 @@ app.delete("/api/orders/:id", async (req, res) => {
   }
 });
 
+  // Get admin stats
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const orders = await Order.find();
+
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    const pendingOrders = orders.filter(o => o.status === "pending").length;
+    const processingOrders = orders.filter(o => o.status === "processing").length;
+
+    // Sort orders by date (most recent first)
+    const recentOrders = orders
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+
+    res.json({
+      totalOrders,
+      totalRevenue,
+      pendingOrders,
+      processingOrders,
+      recentOrders,
+    });
+  } catch (error) {
+    console.error("Error fetching admin stats:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // ====== Server Start ======
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
