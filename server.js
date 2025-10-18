@@ -32,7 +32,7 @@ const upload = multer({ dest: "uploads/" });
 const menuSchema = new mongoose.Schema({
   name: String,
   description: String,
-  category: String, // Food, Snacks, Extras, Drinks, Shawarma, Asun
+  category: [String], // <-- now supports multiple categories
   price: Number,
   imageUrl: String,
   featured: Boolean,
@@ -53,7 +53,7 @@ app.get("/api/menu", async (req, res) => {
   }
 });
 
-// POST new menu item (with image upload)
+// POST new menu item
 app.post("/api/menu", upload.single("image"), async (req, res) => {
   try {
     const { name, description, category, price, featured } = req.body;
@@ -67,13 +67,15 @@ app.post("/api/menu", upload.single("image"), async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
+    const categories = Array.isArray(category) ? category : JSON.parse(category);
+
     const newItem = new Menu({
       name,
       description,
-      category,
+      category: categories,
       price,
       imageUrl,
-      featured: featured === "true",
+      featured: featured === "Yes" || featured === "true",
     });
 
     await newItem.save();
@@ -87,12 +89,15 @@ app.post("/api/menu", upload.single("image"), async (req, res) => {
 app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
   try {
     const { name, description, category, price, featured } = req.body;
+
+    const categories = Array.isArray(category) ? category : JSON.parse(category);
+
     const updateData = {
       name,
       description,
-      category,
+      category: categories,
       price,
-      featured: featured === "true",
+      featured: featured === "Yes" || featured === "true",
     };
 
     if (req.file) {
@@ -103,15 +108,12 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    const updated = await Menu.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-    });
+    const updated = await Menu.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json({ message: "Menu item updated", item: updated });
   } catch (err) {
     res.status(500).json({ message: "Error updating item", error: err });
   }
 });
-
 // GET single menu item by ID
 app.get("/api/menu/:id", async (req, res) => {
   try {
