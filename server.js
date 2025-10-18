@@ -187,7 +187,7 @@ app.post("/api/payment/verify", async (req, res) => {
 
       // ✅ Send SMS using Termii
       const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
-Order ID: ${newOrder._id}.
+Order ID: ${reference}.
 Keep this ID safe — your dispatcher will confirm it at delivery.`;
 
       const smsPayload = {
