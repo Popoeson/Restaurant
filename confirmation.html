@@ -127,7 +127,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      const orderRef = localStorage.getItem("orderReference");
+      const orderRef = localStorage.getItem("lastOrderID");
       const confirmationContainer = document.getElementById("confirmation-container");
       const customerNameEl = document.getElementById("customerName");
       const orderIdEl = document.getElementById("orderId");
@@ -141,7 +141,7 @@
 
       try {
         // ✅ Replace with your actual backend URL
-        const response = await fetch(`https://restaurant-eqbo.onrender.com/api/orders/${ref}`);
+        const response = await fetch(`https://restaurant-eqbo.onrender.com/api/orders/${orderRef}`);
         if (!response.ok) throw new Error("Order not found");
 
         const order = await response.json();
