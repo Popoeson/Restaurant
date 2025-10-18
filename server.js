@@ -112,6 +112,17 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
   }
 });
 
+// GET single menu item by ID
+app.get("/api/menu/:id", async (req, res) => {
+  try {
+    const item = await Menu.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching item", error: err });
+  }
+});
+
 // DELETE menu item
 app.delete("/api/menu/:id", async (req, res) => {
   try {
