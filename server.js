@@ -226,6 +226,23 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
+// 📦 Get single order by ID
+app.get("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findOne({ reference: id }); // 'reference' was your order ID in checkout
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (err) {
+    console.error("Error fetching order:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 // ====== Server Start ======
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
