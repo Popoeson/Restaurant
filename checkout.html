@@ -255,6 +255,8 @@
         return;
       }
 
+      const ref = "ORD" + Math.floor(Math.random() * 1000000000); // ✅ generate Order ID here
+
       const orderData = {
         name,
         email,
@@ -263,14 +265,15 @@
         junction,
         items: tastyPacks,
         totalAmount: grandTotal,
+        reference: ref,
       };
 
       const handler = PaystackPop.setup({
-        key: "pk_test_72e7641a30dcdbad32a51606354065cc5b62f20f", // ✅ your public key
+        key: "pk_test_72e7641a30dcdbad32a51606354065cc5b62f20f",
         email,
         amount: grandTotal * 100,
         currency: "NGN",
-        ref: "ORD" + Math.floor(Math.random() * 1000000000),
+        ref,
         metadata: {
           custom_fields: [
             { display_name: "Customer Name", variable_name: "customer_name", value: name },
@@ -279,7 +282,6 @@
           ],
         },
         callback: function (response) {
-          // ✅ Send to backend for verification
           fetch("https://restaurant-eqbo.onrender.com/api/payment/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -288,9 +290,18 @@
             .then(res => res.json())
             .then(data => {
               if (data.success) {
-                alert("✅ Payment successful and order saved!");
+                // ✅ Save Order ID to localStorage for confirmation page
+                localStorage.setItem("lastOrderID", ref);
                 localStorage.removeItem("tastyPacks");
                 localStorage.removeItem("activePack");
+
+                // ✅ (optional) backend will send SMS via Termii
+                fetch("https://restaurant-eqbo.onrender.com/api/notify-sms", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ phone, reference: ref, name }),
+                });
+
                 window.location.href = "confirmation.html";
               } else {
                 alert("❌ Payment verification failed. Please contact support.");
@@ -310,4 +321,4 @@
     });
   </script>
 </body>
-        </html>
+  </html>
