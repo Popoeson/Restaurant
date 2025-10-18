@@ -1,185 +1,192 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-  <meta charset="UTF-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
-  <title>Order Confirmation - TastyBite</title>  
-  <style>  
-    body {  
-      font-family: "Poppins", sans-serif;  
-      background: #fff8f2;  
-      color: #333;  
-      margin: 0;  
-      padding: 0;  
-      display: flex;  
-      justify-content: center;  
-      align-items: flex-start;  
-      min-height: 100vh;  
-    }  .confirmation-container {  
-  background: #fff;  
-  width: 95%;  
-  max-width: 500px;  
-  margin: 40px auto;  
-  border-radius: 20px;  
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);  
-  padding: 25px;  
-  text-align: center;  
-}  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmation - TastyBite</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #fff8f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .confirmation-container {
+      background: #fff;
+      width: 95%;
+      max-width: 500px;
+      margin: 40px auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      text-align: center;
+    }
 
-h1 {  
-  color: #ff7b00;  
-  font-size: 26px;  
-}  
+    h1 {
+      color: #ff7b00;
+      font-size: 26px;
+    }
 
-.success-icon {  
-  font-size: 60px;  
-  color: #28a745;  
-  margin-bottom: 10px;  
-}  
+    .success-icon {
+      font-size: 60px;
+      color: #28a745;
+      margin-bottom: 10px;
+    }
 
-.order-id {  
-  background: #fff4e5;  
-  border-radius: 10px;  
-  padding: 10px;  
-  font-size: 16px;  
-  color: #ff7b00;  
-  font-weight: 500;  
-  margin: 15px 0;  
-  word-break: break-all;  
-}  
+    .order-id {
+      background: #fff4e5;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      color: #ff7b00;
+      font-weight: 500;
+      margin: 15px 0;
+      word-break: break-all;
+    }
 
-.order-summary {  
-  text-align: left;  
-  background: #fff7f0;  
-  border-radius: 10px;  
-  padding: 15px;  
-  margin-top: 15px;  
-}  
+    .order-summary {
+      text-align: left;
+      background: #fff7f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+    }
 
-.order-summary h3 {  
-  margin-top: 0;  
-  color: #ff7b00;  
-  font-size: 18px;  
-}  
+    .order-summary h3 {
+      margin-top: 0;
+      color: #ff7b00;
+      font-size: 18px;
+    }
 
-.order-item {  
-  display: flex;  
-  justify-content: space-between;  
-  font-size: 14px;  
-  margin-bottom: 8px;  
-}  
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
 
-.order-total {  
-  border-top: 1px solid #ccc;  
-  padding-top: 10px;  
-  font-weight: bold;  
-  color: #ff7b00;  
-  text-align: right;  
-  margin-top: 10px;  
-}  
+    .order-total {
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      font-weight: bold;
+      color: #ff7b00;
+      text-align: right;
+      margin-top: 10px;
+    }
 
-button {  
-  background: #ff7b00;  
-  color: #fff;  
-  border: none;  
-  border-radius: 10px;  
-  padding: 14px;  
-  font-size: 16px;  
-  margin-top: 25px;  
-  cursor: pointer;  
-  transition: 0.3s;  
-  width: 100%;  
-}  
+    button {
+      background: #ff7b00;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 25px;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+    }
 
-button:hover {  
-  background: #e86f00;  
-}  
+    button:hover {
+      background: #e86f00;
+    }
 
-.note {  
-  margin-top: 10px;  
-  font-size: 13px;  
-  color: #666;  
-}
+    .note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="confirmation-container" id="confirmation-container">
+    <div class="success-icon">✅</div>
+    <h1>Order Confirmed!</h1>
+    <p>Thank you for your order, <span id="customerName"></span> 🎉</p>
+    <p>Your food will arrive in approximately <b>30–45 minutes</b>.</p>
 
-  </style>  
-</head>  
-<body>  
-  <div class="confirmation-container">  
-    <div class="success-icon">✅</div>  
-    <h1>Order Confirmed!</h1>  
-    <p>Thank you for your order, <span id="customerName"></span> 🎉</p>  <p>Your food will arrive in approximately <b>30–45 minutes</b>.</p>  
+    <div class="order-id">
+      Order ID: <span id="orderId"></span>
+    </div>
 
-<div class="order-id">  
-  Order ID: <span id="orderId"></span>  
-</div>  
+    <div class="order-summary">
+      <h3>Order Summary</h3>
+      <div id="orderItems"></div>
+      <div class="order-total" id="orderTotal"></div>
+    </div>
 
-<div class="order-summary">  
-  <h3>Order Summary</h3>  
-  <div id="orderItems"></div>  
-  <div class="order-total" id="orderTotal"></div>  
-</div>  
+    <p class="note">Keep your Order ID safe — the dispatcher will confirm it upon delivery.</p>
 
-<p class="note">Keep your Order ID safe — the dispatcher will confirm it upon delivery.</p>  
+    <button id="backHomeBtn">Back to Home</button>
+  </div>
 
-<button onclick="window.location.href='index.html'">Back to Home</button>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const orderRef = localStorage.getItem("orderReference");
+      const confirmationContainer = document.getElementById("confirmation-container");
+      const customerNameEl = document.getElementById("customerName");
+      const orderIdEl = document.getElementById("orderId");
+      const orderItemsContainer = document.getElementById("orderItems");
+      const totalAmountEl = document.getElementById("orderTotal");
 
-  </div>  
-<script>  
-document.addEventListener("DOMContentLoaded", async () => {  
-  const orderRef = localStorage.getItem("orderReference");  
-  const confirmationContainer = document.getElementById("confirmation-container");  
-  const orderSummaryContainer = document.getElementById("order-summary");  
-  const totalAmountEl = document.getElementById("total-amount");  if (!orderRef) {
-confirmationContainer.innerHTML = "<p>No order reference found. Please go back to the homepage.</p>";
-return;
-}
+      if (!orderRef) {
+        confirmationContainer.innerHTML = "<p>No order reference found. Please go back to the homepage.</p>";
+        return;
+      }
 
-try {
-const response = await fetch(https://your-backend-url.com/api/orders/${orderRef});
-if (!response.ok) throw new Error("Order not found");
+      try {
+        // ✅ Replace with your actual backend URL
+        const response = await fetch(`https://restaurant-eqbo.onrender.com/api/orders/${orderRef}`);
+        if (!response.ok) throw new Error("Order not found");
 
-const order = await response.json();  
+        const order = await response.json();
 
-document.getElementById("customer-name").textContent = order.name;  
-document.getElementById("order-id").textContent = order.reference;  
+        customerNameEl.textContent = order.name || "Customer";
+        orderIdEl.textContent = order.reference || orderRef;
 
-orderSummaryContainer.innerHTML = ""; // clear previous content  
+        orderItemsContainer.innerHTML = "";
 
-// ✅ Handle nested "Pack" structure  
-order.items.forEach(pack => {  
-  Object.keys(pack).forEach(packName => {  
-    const packItems = pack[packName];  
-      
-    // Add pack title  
-    const packTitle = document.createElement("h4");  
-    packTitle.textContent = packName;  
-    orderSummaryContainer.appendChild(packTitle);  
+        // ✅ Handle nested "pack" items or simple arrays
+        order.items.forEach(pack => {
+          Object.keys(pack).forEach(packName => {
+            const packItems = pack[packName];
 
-    // Add each item inside the pack  
-    packItems.forEach(item => {  
-      const div = document.createElement("div");  
-      div.classList.add("order-item");  
-      div.innerHTML = `  
-        <div class="item-info">  
-          <img src="${item.img}" alt="${item.name}" />  
-          <div>  
-            <p>${item.name} × ${item.qty}</p>  
-            <p>₦${item.price * item.qty}</p>  
-          </div>  
-        </div>  
-      `;  
-      orderSummaryContainer.appendChild(div);  
-    });  
-  });  
-});  
+            const packTitle = document.createElement("h4");
+            packTitle.textContent = packName;
+            orderItemsContainer.appendChild(packTitle);
 
-totalAmountEl.textContent = `₦${order.totalAmount.toLocaleString()}`;
+            if (Array.isArray(packItems)) {
+              packItems.forEach(item => {
+                const div = document.createElement("div");
+                div.classList.add("order-item");
+                div.innerHTML = `
+                  <div>${item.name} × ${item.qty}</div>
+                  <div>₦${(item.price * item.qty).toLocaleString()}</div>
+                `;
+                orderItemsContainer.appendChild(div);
+              });
+            }
+          });
+        });
 
-} catch (error) {
-console.error("Error loading order:", error);
-confirmationContainer.innerHTML = <p>❌ ${error.message}</p>;
-}
-});
-</script>
+        totalAmountEl.textContent = `Total: ₦${order.totalAmount?.toLocaleString() || 0}`;
+      } catch (error) {
+        console.error("Error loading order:", error);
+        confirmationContainer.innerHTML = `<p>❌ ${error.message}</p>`;
+      }
 
-</body>  
-  </html>  
+      // ✅ Clear cart and go home
+      document.getElementById("backHomeBtn").addEventListener("click", () => {
+        localStorage.removeItem("cart");
+        localStorage.removeItem("orderReference");
+        window.location.href = "index.html";
+      });
+    });
+  </script>
+</body>
+  </html>
