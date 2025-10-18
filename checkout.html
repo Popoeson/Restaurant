@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout - Sandwich Delivery</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #fff8f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .checkout-container {
+      background: #fff;
+      width: 95%;
+      max-width: 500px;
+      margin: 40px auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff7b00;
+      font-size: 24px;
+    }
+
+    h3 {
+      color: #444;
+      margin-top: 25px;
+      border-left: 4px solid #ff7b00;
+      padding-left: 8px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    form input:focus {
+      border-color: #ff7b00;
+      box-shadow: 0 0 4px rgba(255, 123, 0, 0.4);
+    }
+
+    .order-summary {
+      margin-top: 25px;
+      background: #fff7f0;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .order-total {
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      font-weight: bold;
+      text-align: right;
+      color: #ff7b00;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 25px;
+      background: #ff7b00;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #e86f00;
+    }
+  </style>
+</head>
+<body>
+  <div class="checkout-container">
+    <h1>Checkout</h1>
+
+    <h3>Delivery Details</h3>
+    <form id="deliveryForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="tel" id="phone" placeholder="Phone Number" required />
+      <input type="text" id="address" placeholder="Delivery Address" required />
+      <input type="text" id="junction" placeholder="Nearest Junction" required />
+    </form>
+
+    <div class="order-summary">
+      <h3>Order Summary</h3>
+      <div id="orderItems"></div>
+      <div class="order-total" id="orderTotal"></div>
+    </div>
+
+    <button id="payBtn">Proceed to Payment</button>
+  </div>
+
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script>
+    // Load cart data from localStorage
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const orderItems = document.getElementById("orderItems");
+    const orderTotal = document.getElementById("orderTotal");
+
+    let total = 0;
+    orderItems.innerHTML = "";
+    cart.forEach(item => {
+      const subtotal = item.price * item.quantity;
+      total += subtotal;
+      orderItems.innerHTML += `
+        <div class="order-item">
+          <span>${item.name} (x${item.quantity})</span>
+          <span>₦${subtotal.toLocaleString()}</span>
+        </div>
+      `;
+    });
+    orderTotal.textContent = `Total: ₦${total.toLocaleString()}`;
+
+    // Paystack Payment Logic
+    document.getElementById("payBtn").addEventListener("click", () => {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const junction = document.getElementById("junction").value.trim();
+
+      if (!name || !email || !phone || !address || !junction) {
+        alert("Please fill in all delivery details.");
+        return;
+      }
+
+      const handler = PaystackPop.setup({
+        key: "pk_test_xxxxxxxxxxxxxxxxxxxxx", // Replace with your Paystack public key
+        email: email,
+        amount: total * 100, // in kobo
+        currency: "NGN",
+        ref: "ORD" + Math.floor(Math.random() * 1000000000),
+        metadata: {
+          custom_fields: [
+            { display_name: "Customer Name", variable_name: "customer_name", value: name },
+            { display_name: "Phone", variable_name: "phone", value: phone },
+            { display_name: "Address", variable_name: "address", value: address + " (Near " + junction + ")" },
+          ],
+        },
+        callback: function(response) {
+          alert("Payment successful! Reference: " + response.reference);
+          localStorage.removeItem("cart");
+          window.location.href = "confirmation.html";
+        },
+        onClose: function() {
+          alert("Payment cancelled.");
+        },
+      });
+      handler.openIframe();
+    });
+  </script>
+</body>
+</html>
