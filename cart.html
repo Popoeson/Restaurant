@@ -125,7 +125,7 @@
     </aside>
   </main>
 
-  <script>
+<script>
 const packsContainer = document.getElementById("packsContainer");
 const subtotalElement = document.getElementById("subtotal");
 const grandTotalElement = document.getElementById("grandTotal");
@@ -136,8 +136,8 @@ const proceedCheckout = document.getElementById("proceedCheckout");
 let tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
 let activePack = localStorage.getItem("activePack") || "Pack 1";
 const deliveryFee = 500;
+const takeawayPrice = 200; // Hardcoded price per takeaway pack (₦200 each)
 
-// ---- Helper ----
 function saveData() {
   if (Object.keys(tastyPacks).length === 0) {
     localStorage.removeItem("tastyPacks");
@@ -148,12 +148,17 @@ function saveData() {
   }
 }
 
-function calcTotal() {
+function calcSubtotal() {
   let total = 0;
   Object.values(tastyPacks).forEach(pack => {
     pack.forEach(item => total += item.price * item.qty);
   });
   return total;
+}
+
+// Calculate takeaway cost
+function calcTakeaway() {
+  return Object.keys(tastyPacks).length * takeawayPrice;
 }
 
 // ---- Render ----
@@ -210,8 +215,26 @@ function render() {
       </div>`;
   });
 
+  const numPacks = Object.keys(tastyPacks).length;
+  const takeawayTotal = calcTakeaway();
+  const grandTotal = subtotal + deliveryFee + takeawayTotal;
+
   subtotalElement.textContent = `₦${subtotal.toLocaleString()}`;
-  grandTotalElement.textContent = `₦${(subtotal + deliveryFee).toLocaleString()}`;
+
+  // Update summary DOM
+  const summary = document.querySelector(".summary");
+  summary.innerHTML = `
+    <h3>Order Summary</h3>
+    <div class="summary-row"><div class="label">Subtotal</div><div id="subtotal">₦${subtotal.toLocaleString()}</div></div>
+    <div class="summary-row"><div class="label">Takeaway Packs</div><div id="takeawayTotal">₦${takeawayTotal.toLocaleString()} (${numPacks} pack${numPacks > 1 ? 's' : ''})</div></div>
+    <div class="summary-row"><div class="label">Delivery Fee</div><div id="deliveryFee">₦${deliveryFee.toLocaleString()}</div></div>
+    <hr style="border:none;border-top:1px solid #eee;margin:8px 0;">
+    <div class="summary-row" style="font-size:1.15rem;font-weight:700;"><div>Total</div><div id="grandTotal">₦${grandTotal.toLocaleString()}</div></div>
+    <button class="checkout" id="proceedCheckout">Proceed to Checkout</button>
+  `;
+
+  document.getElementById("proceedCheckout").onclick = () => window.location.href = "checkout.html";
+
   saveData();
 }
 
@@ -307,5 +330,6 @@ proceedCheckout.onclick = () => window.location.href = "checkout.html";
 renderSuggestions();
 render();
 </script>
+
 </body>
-</html>
+                                                                        </html>
