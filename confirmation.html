@@ -127,51 +127,101 @@
     <button onclick="window.location.href='index.html'">Back to Home</button>
   </div>
 
-  <script>
-    const orderData = JSON.parse(localStorage.getItem("lastOrder")) || null;
+<script>
+  (async () => {
+    const orderId = localStorage.getItem("lastOrderID");
     const orderItemsDiv = document.getElementById("orderItems");
     const orderTotalDiv = document.getElementById("orderTotal");
     const orderIdDiv = document.getElementById("orderId");
     const nameDiv = document.getElementById("customerName");
 
-    if (!orderData) {
+    // ✅ No order ID found
+    if (!orderId) {
       document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>No order found</h2>";
-    } else {
-      const { orderId, name, items, total, phone } = orderData;
+      return;
+    }
+
+    try {
+      // ✅ Fetch order details from backend using orderId
+      const res = await fetch(`https://restaurant-eqbo.onrender.com/api/orders/${orderId}`);
+      if (!res.ok) throw new Error("Order not found");
+
+      const orderData = await res.json();
+      const { name, phone, items, totalAmount } = orderData;
+
+      // ✅ Display order info
       nameDiv.textContent = name;
       orderIdDiv.textContent = orderId;
 
-      items.forEach(item => {
-        const div = document.createElement("div");
-        div.classList.add("order-item");
-        div.innerHTML = `<span>${item.name} (x${item.qty})</span><span>₦${(item.price * item.qty).toLocaleString()}</span>`;
-        orderItemsDiv.appendChild(div);
+      // ✅ Loop through packs and items
+      Object.entries(items).forEach(([packName, packItems]) => {
+        const packDiv = document.createElement("div");
+        packDiv.classList.add("pack");
+
+        const header = document.createElement("div");
+        header.classList.add("pack-header");
+        header.innerHTML = `<span>${packName}</span><span class="arrow">▼</span>`;
+
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("pack-items");
+
+        packItems.forEach(item => {
+          const itemDiv = document.createElement("div");
+          itemDiv.classList.add("order-item");
+          itemDiv.innerHTML = `
+            <div class="item-details">
+              <img src="${item.img || item.imageUrl || 'https://via.placeholder.com/40'}" alt="${item.name}">
+              <span>${item.name} (x${item.qty})</span>
+            </div>
+            <span>₦${(item.price * item.qty).toLocaleString()}</span>
+          `;
+          itemContainer.appendChild(itemDiv);
+        });
+
+        header.addEventListener("click", () => {
+          const isOpen = header.classList.toggle("open");
+          if (isOpen) {
+            itemContainer.style.maxHeight = itemContainer.scrollHeight + "px";
+            itemContainer.style.padding = "10px";
+          } else {
+            itemContainer.style.maxHeight = "0";
+            itemContainer.style.padding = "0 10px";
+          }
+        });
+
+        packDiv.appendChild(header);
+        packDiv.appendChild(itemContainer);
+        orderItemsDiv.appendChild(packDiv);
       });
 
-      orderTotalDiv.textContent = `Total: ₦${total.toLocaleString()}`;
+      orderTotalDiv.textContent = `Total: ₦${totalAmount.toLocaleString()}`;
 
-      // ✅ Send SMS confirmation via backend (Termii)
-      (async () => {
-        try {
-          const res = await fetch("https://tastybite.onrender.com/api/send-sms", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              phone,
-              message: `Hi ${name}, your order (${orderId}) has been confirmed! Please show this code to the dispatcher.`
-            }),
-          });
+      // ✅ Send confirmation SMS through backend (Termii)
+      try {
+        const smsRes = await fetch("https://restaurant-eqbo.onrender.com/api/notify-sms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone,
+            name,
+            reference: orderId,
+          }),
+        });
 
-          if (res.ok) {
-            console.log("✅ SMS sent successfully");
-          } else {
-            console.warn("⚠️ Failed to send SMS:", await res.text());
-          }
-        } catch (err) {
-          console.error("⚠️ SMS request error:", err);
+        if (smsRes.ok) {
+          console.log("✅ SMS sent successfully");
+        } else {
+          console.warn("⚠️ Failed to send SMS:", await smsRes.text());
         }
-      })();
+      } catch (smsErr) {
+        console.error("⚠️ Error sending SMS:", smsErr);
+      }
+
+    } catch (err) {
+      console.error("Error loading order:", err);
+      document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Order not found</h2>";
     }
-  </script>
+  })();
+</script>
 </body>
 </html>
