@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checkout - Sandwich Delivery</title>
+  <title>Checkout - Food Delivery</title>
   <style>
     body {
       font-family: "Poppins", sans-serif;
@@ -160,7 +160,26 @@
 <body>
   <div class="checkout-container">
     <h1>Checkout</h1>
-<script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <h3>Delivery Details</h3>
+    <form id="deliveryForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="tel" id="phone" placeholder="Phone Number" required />
+      <input type="text" id="address" placeholder="Delivery Address" required />
+      <input type="text" id="junction" placeholder="Nearest Junction" required />
+    </form>
+
+    <div class="order-summary">
+      <h3>Order Summary</h3>
+      <div id="orderItems"></div>
+      <div class="order-total" id="orderTotal"></div>
+    </div>
+
+    <button id="payBtn">Proceed to Payment</button>
+  </div>
+
+ <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
   // Load cart data from localStorage
   const tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
@@ -273,4 +292,4 @@
   });
 </script>
 </body>
-        </html>
+</html>
