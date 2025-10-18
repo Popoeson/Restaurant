@@ -345,19 +345,72 @@
     © 2025 TastyBite Restaurant. All rights reserved.
   </footer>
 
-  <!-- SCRIPT -->
-  <script>
-    const cartCount = document.querySelector('.cart-count');
-    const addButtons = document.querySelectorAll('.menu-info button');
-    let cartItems = 0;
+ <script>
+  const BASE_URL = "https://restaurant-eqbo.onrender.com/api/menu"; // ✅ Your backend endpoint
+  const menuGrid = document.getElementById("menuGrid");
+  const cartCount = document.querySelector(".cart-count");
 
-    addButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        cartItems++;
-        cartCount.textContent = cartItems;
-        alert('Item added to cart!');
-      });
+  let allMenu = [];
+  let cartItems = 0;
+
+  // ✅ Fetch all menu items from backend
+  async function fetchMenu() {
+    try {
+      const res = await fetch(BASE_URL);
+      const data = await res.json();
+      allMenu = data;
+      displayMenu(data);
+    } catch (err) {
+      console.error("Error fetching menu:", err);
+      menuGrid.innerHTML = `<p style="color:red;">Failed to load menu. Please refresh.</p>`;
+    }
+  }
+
+  // ✅ Display menu items
+  function displayMenu(menuItems) {
+    menuGrid.innerHTML = "";
+    if (menuItems.length === 0) {
+      menuGrid.innerHTML = `<p>No menu items available yet.</p>`;
+      return;
+    }
+
+    menuItems.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "menu-card";
+      card.innerHTML = `
+        <img src="${item.imageUrl || 'https://via.placeholder.com/400x250'}" alt="${item.name}">
+        <div class="menu-info">
+          <h3>${item.name} <span>₦${item.price}</span></h3>
+          <p>${item.description || ''}</p>
+          <button onclick="addToCart('${item.name}')">Add to Cart</button>
+        </div>
+      `;
+      menuGrid.appendChild(card);
     });
-  </script>
+  }
+
+  // ✅ Filter by category
+  document.querySelectorAll(".category-filter button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const category = btn.textContent.trim();
+      if (category === "All") {
+        displayMenu(allMenu);
+      } else {
+        const filtered = allMenu.filter(item => item.category === category);
+        displayMenu(filtered);
+      }
+    });
+  });
+
+  // ✅ Add to cart simulation
+  function addToCart(name) {
+    cartItems++;
+    cartCount.textContent = cartItems;
+    alert(`${name} added to cart!`);
+  }
+
+  // ✅ Initialize
+  fetchMenu();
+</script>
 </body>
-</html>
+                                 </html>
