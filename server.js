@@ -6,6 +6,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+  import axios from "axios"; // for verifying Paystack payments
+
 
 dotenv.config();
 const app = express();
@@ -25,6 +27,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// ====== PAYSTACK CONFIG ======
+const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+
 // ====== Multer Setup ======
 const upload = multer({ dest: "uploads/" });
 
@@ -40,6 +45,22 @@ const menuSchema = new mongoose.Schema({
 });
 
 const Menu = mongoose.model("Menu", menuSchema);
+
+// ====== Order Schema ======
+const orderSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  phone: String,
+  address: String,
+  junction: String,
+  items: Array, // cart items
+  totalAmount: Number,
+  reference: String,
+  status: { type: String, default: "pending" }, // pending, paid, failed
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Order = mongoose.model("Order", orderSchema);
 
 // ====== ROUTES ======
 
@@ -132,6 +153,55 @@ app.delete("/api/menu/:id", async (req, res) => {
     res.json({ message: "Menu item deleted" });
   } catch (err) {
     res.status(500).json({ message: "Error deleting item", error: err });
+  }
+});
+
+  
+// ====== Verify Paystack Payment ======
+app.post("/api/payment/verify", async (req, res) => {
+  try {
+    const { reference, orderData } = req.body;
+
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET}`,
+      },
+    });
+
+    const data = response.data.data;
+
+    if (data.status === "success") {
+      // ✅ Save order in DB
+      const newOrder = new Order({
+        name: orderData.name,
+        email: orderData.email,
+        phone: orderData.phone,
+        address: orderData.address,
+        junction: orderData.junction,
+        items: orderData.items,
+        totalAmount: orderData.totalAmount,
+        reference,
+        status: "paid",
+      });
+
+      await newOrder.save();
+
+      res.json({ success: true, message: "Payment verified and order saved", order: newOrder });
+    } else {
+      res.status(400).json({ success: false, message: "Payment not successful" });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error verifying payment", error: err.message });
+  }
+});
+
+// ====== Get All Orders (Admin use) ======
+app.get("/api/orders", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching orders", error: err });
   }
 });
 
