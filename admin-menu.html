@@ -5,269 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Menu Management | TastyBite Admin</title>
   <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background-color: #f8f9fb;
-      color: #333;
-    }
-
+    body { margin:0; font-family:"Poppins",sans-serif; background:#f8f9fb; color:#333; }
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(to right, #ff7f50, #ff914d);
-      color: white;
-      padding: 12px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      display:flex; align-items:center; justify-content:space-between;
+      background:linear-gradient(to right,#ff7f50,#ff914d); color:white;
+      padding:12px 16px; position:sticky; top:0; z-index:10;
     }
-
-    .menu-toggle {
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    .brand {
-      font-weight: 600;
-      font-size: 18px;
-    }
-
+    .brand { font-weight:600; font-size:18px; }
     .brand span {
-      background: white;
-      color: #ff7f50;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-left: 4px;
+      background:white; color:#ff7f50; font-size:12px;
+      padding:2px 6px; border-radius:6px; margin-left:4px;
     }
-
-    main {
-      padding: 16px;
-    }
-
-    h2 {
-      margin-bottom: 4px;
-      font-size: 20px;
-    }
-
-    p.subtitle {
-      color: gray;
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-
-    .top-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
+    main { padding:16px; }
+    h2 { margin-bottom:4px; font-size:20px; }
+    p.subtitle { color:gray; font-size:14px; margin-bottom:16px; }
+    .top-actions { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
     .top-actions button {
-      background: linear-gradient(to right, #ff7f50, #ff914d);
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      width: fit-content;
+      background:linear-gradient(to right,#ff7f50,#ff914d);
+      border:none; color:white; padding:10px 16px; border-radius:8px;
+      font-weight:500; cursor:pointer; width:fit-content;
     }
-
-    .top-actions input,
-    .top-actions select {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      width: 100%;
+    .top-actions input, .top-actions select {
+      padding:10px; border:1px solid #ccc; border-radius:8px; font-size:14px; width:100%;
     }
-
-    .search-filter {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
+    .search-filter { display:flex; flex-direction:column; gap:10px; }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      width:100%; border-collapse:collapse; background:white; border-radius:10px;
+      box-shadow:0 1px 5px rgba(0,0,0,0.1); overflow:hidden;
     }
+    th, td { padding:10px; font-size:14px; text-align:left; vertical-align:middle; }
+    th { background:#ff914d; color:white; }
+    tr:nth-child(even) { background:#f9f9f9; }
+    td.actions { display:flex; gap:8px; }
+    td.actions button { border:none; background:none; cursor:pointer; font-size:18px; }
+    td.actions button.edit { color:#ff914d; }
+    td.actions button.delete { color:crimson; }
+    td img.thumbnail { width:50px; height:50px; border-radius:6px; object-fit:cover; margin-right:8px; vertical-align:middle; }
 
-    th, td {
-      padding: 10px;
-      font-size: 14px;
-      text-align: left;
-      vertical-align: middle;
+    /* MODAL */
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:100;
     }
-
-    th {
-      background: #ff914d;
-      color: white;
-    }
-
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-
-    td.actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    td.actions button {
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-size: 18px;
-    }
-
-    td.actions button.edit {
-      color: #ff914d;
-    }
-
-    td.actions button.delete {
-      color: crimson;
-    }
-
-    td img.thumbnail {
-      width: 50px;
-      height: 50px;
-      border-radius: 6px;
-      object-fit: cover;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    /* ---------- MODAL ---------- */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
     .modal-content {
-      background: white;
-      width: 90%;
-      max-width: 420px;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-      position: relative;
-      animation: fadeIn 0.3s ease;
+      background:white; width:90%; max-width:420px; border-radius:10px; padding:20px;
+      box-shadow:0 5px 20px rgba(0,0,0,0.3); position:relative; animation:fadeIn 0.3s ease;
     }
-
-    @keyframes fadeIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+    @keyframes fadeIn { from{transform:scale(0.95);opacity:0;} to{transform:scale(1);opacity:1;} }
+    .modal-content h3 { text-align:center; color:#ff7f50; margin-bottom:10px; }
+    .modal-content label { display:block; font-size:14px; margin-top:10px; margin-bottom:4px; font-weight:500; }
+    .modal-content input, .modal-content select, .modal-content textarea {
+      width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-size:14px;
     }
+    .modal-content select[multiple] { height:90px; }
+    .modal-content textarea { resize:none; height:60px; }
+    .modal-content img { width:100%; height:120px; object-fit:cover; border-radius:6px; margin-top:8px; display:none; }
+    .modal-buttons { display:flex; justify-content:space-between; margin-top:16px; }
+    .modal-buttons button { flex:1; margin:0 4px; padding:10px; border:none; border-radius:8px; font-weight:500; cursor:pointer; }
+    .modal-buttons .save { background:linear-gradient(to right,#ff7f50,#ff914d); color:white; }
+    .modal-buttons .cancel { background:#ccc; color:#333; }
+    .close-modal { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; color:#999; }
 
-    .modal-content h3 {
-      text-align: center;
-      color: #ff7f50;
-      margin-bottom: 10px;
-    }
-
-    .modal-content label {
-      display: block;
-      font-size: 14px;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-
-    .modal-content input,
-    .modal-content select,
-    .modal-content textarea {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    .modal-content textarea {
-      resize: none;
-      height: 60px;
-    }
-
-    .modal-content img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-top: 8px;
-      display: none;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 16px;
-    }
-
-    .modal-buttons button {
-      flex: 1;
-      margin: 0 4px;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    .modal-buttons .save {
-      background: linear-gradient(to right, #ff7f50, #ff914d);
-      color: white;
-    }
-
-    .modal-buttons .cancel {
-      background: #ccc;
-      color: #333;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 20px;
-      cursor: pointer;
-      color: #999;
-    }
-
-    @media (min-width: 600px) {
-      .search-filter {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .search-filter input {
-        width: 50%;
-      }
-
-      .search-filter select {
-        width: 30%;
-      }
+    @media (min-width:600px){
+      .search-filter{flex-direction:row; justify-content:space-between; align-items:center;}
+      .search-filter input{width:50%;}
+      .search-filter select{width:30%;}
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="menu-toggle">☰</div>
     <div class="brand">TastyBite <span>Admin</span></div>
   </header>
 
@@ -288,6 +94,7 @@
           <option value="Shawarma">Shawarma</option>
           <option value="Asun">Asun</option>
           <option value="Drinks">Drinks</option>
+          <option value="Soup">Soup</option>
         </select>
       </div>
     </div>
@@ -315,14 +122,15 @@
       <label>Food Name</label>
       <input type="text" id="foodName" placeholder="Enter food name">
 
-      <label>Category</label>
-      <select id="foodCategory">
+      <label>Categories (hold CTRL to select multiple)</label>
+      <select id="foodCategory" multiple>
         <option value="Food">Food</option>
         <option value="Snacks">Snacks</option>
         <option value="Extras">Extras</option>
         <option value="Shawarma">Shawarma</option>
         <option value="Asun">Asun</option>
         <option value="Drinks">Drinks</option>
+        <option value="Soup">Soup</option>
       </select>
 
       <label>Price (₦)</label>
@@ -335,13 +143,11 @@
       <input type="file" id="foodImage" accept="image/*">
       <img id="previewImage" alt="Preview">
 
-      <div class="featured-toggle">
-        <label>Featured:</label>
-        <select id="foodFeatured">
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-      </div>
+      <label>Featured:</label>
+      <select id="foodFeatured">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
 
       <div class="modal-buttons">
         <button class="cancel" id="cancelBtn">Cancel</button>
@@ -365,7 +171,6 @@
     let editMode = false;
     let editId = null;
 
-    // Modal controls
     const openModal = () => modal.style.display = 'flex';
     const closeModalFn = () => {
       modal.style.display = 'none';
@@ -374,21 +179,17 @@
       clearForm();
     };
 
-    addFoodBtn.onclick = () => {
-      modalTitle.textContent = "Add New Food";
-      openModal();
-    };
-
+    addFoodBtn.onclick = () => { modalTitle.textContent = "Add New Food"; openModal(); };
     closeModal.onclick = closeModalFn;
     cancelBtn.onclick = closeModalFn;
     window.onclick = e => { if (e.target === modal) closeModalFn(); };
 
     function clearForm() {
       document.getElementById('foodName').value = "";
-      document.getElementById('foodCategory').value = "Food";
       document.getElementById('foodPrice').value = "";
       document.getElementById('foodDesc').value = "";
       document.getElementById('foodFeatured').value = "Yes";
+      document.getElementById('foodCategory').selectedIndex = -1;
       previewImage.style.display = 'none';
       foodImage.value = "";
     }
@@ -398,10 +199,7 @@
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = ev => {
-          previewImage.src = ev.target.result;
-          previewImage.style.display = 'block';
-        };
+        reader.onload = ev => { previewImage.src = ev.target.result; previewImage.style.display = 'block'; };
         reader.readAsDataURL(file);
       }
     });
@@ -413,46 +211,42 @@
         const data = await res.json();
         menuBody.innerHTML = '';
         data.forEach(item => {
+          const categories = Array.isArray(item.category) ? item.category.join(', ') : item.category;
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td>
-              <img src="${item.imageUrl || ''}" alt="" class="thumbnail">
-              <strong>${item.name}</strong><br><small>${item.description}</small>
-            </td>
-            <td>${item.category}</td>
+            <td><img src="${item.imageUrl || ''}" alt="" class="thumbnail">
+              <strong>${item.name}</strong><br><small>${item.description}</small></td>
+            <td>${categories}</td>
             <td>₦${parseFloat(item.price).toFixed(2)}</td>
             <td>${item.featured}</td>
             <td class="actions">
               <button class="edit" data-id="${item._id}">✏️</button>
               <button class="delete" data-id="${item._id}">🗑️</button>
-            </td>
-          `;
+            </td>`;
           menuBody.appendChild(row);
         });
-      } catch (err) {
-        console.error("Error loading menu:", err);
-      }
+      } catch (err) { console.error("Error loading menu:", err); }
     }
-
     loadMenu();
 
-    // Add or Update food
+    // Add / Update food
     saveFoodBtn.onclick = async () => {
       const name = document.getElementById('foodName').value.trim();
-      const category = document.getElementById('foodCategory').value;
+      const categorySelect = document.getElementById('foodCategory');
+      const selectedCategories = Array.from(categorySelect.selectedOptions).map(o => o.value);
       const price = document.getElementById('foodPrice').value;
       const description = document.getElementById('foodDesc').value.trim();
       const featured = document.getElementById('foodFeatured').value;
       const image = document.getElementById('foodImage').files[0];
 
-      if (!name || !price || !description) {
-        alert('Please fill all fields.');
+      if (!name || !price || !description || selectedCategories.length === 0) {
+        alert('Please fill all fields and select at least one category.');
         return;
       }
 
       const formData = new FormData();
       formData.append('name', name);
-      formData.append('category', category);
+      formData.append('category', JSON.stringify(selectedCategories)); // store as array
       formData.append('price', price);
       formData.append('description', description);
       formData.append('featured', featured);
@@ -465,33 +259,28 @@
         if (!res.ok) throw new Error('Server error');
         await res.json();
         alert(editMode ? 'Food updated successfully!' : 'Food added successfully!');
-        closeModalFn();
-        loadMenu();
-      } catch (err) {
-        console.error(err);
-        alert('Error saving food.');
-      }
+        closeModalFn(); loadMenu();
+      } catch (err) { console.error(err); alert('Error saving food.'); }
     };
 
-    // Handle Edit/Delete
+    // Edit / Delete
     menuBody.addEventListener('click', async e => {
       const id = e.target.dataset.id;
       if (e.target.classList.contains('edit')) {
-        // Edit
         const res = await fetch(`${BASE_URL}/${id}`);
         const item = await res.json();
         document.getElementById('foodName').value = item.name;
-        document.getElementById('foodCategory').value = item.category;
         document.getElementById('foodPrice').value = item.price;
         document.getElementById('foodDesc').value = item.description;
         document.getElementById('foodFeatured').value = item.featured;
-        if (item.imageUrl) {
-          previewImage.src = item.imageUrl;
-          previewImage.style.display = 'block';
-        }
+        const categorySelect = document.getElementById('foodCategory');
+        const categories = Array.isArray(item.category) ? item.category : [item.category];
+        Array.from(categorySelect.options).forEach(opt => {
+          opt.selected = categories.includes(opt.value);
+        });
+        if (item.imageUrl) { previewImage.src = item.imageUrl; previewImage.style.display = 'block'; }
         modalTitle.textContent = "Edit Food";
-        editMode = true;
-        editId = id;
+        editMode = true; editId = id;
         openModal();
       }
 
@@ -502,10 +291,7 @@
             if (!res.ok) throw new Error('Server error');
             alert('Food deleted successfully!');
             loadMenu();
-          } catch (err) {
-            console.error(err);
-            alert('Error deleting food.');
-          }
+          } catch (err) { console.error(err); alert('Error deleting food.'); }
         }
       }
     });
