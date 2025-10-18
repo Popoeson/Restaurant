@@ -214,7 +214,6 @@
         itemContainer.appendChild(itemDiv);
       });
 
-      // ✅ Collapsible expand animation
       header.addEventListener("click", () => {
         const isOpen = header.classList.toggle("open");
         if (isOpen) {
@@ -243,7 +242,7 @@
 
     orderTotal.textContent = `Total: ₦${grandTotal.toLocaleString()}`;
 
-    // ✅ Paystack integration
+    // ✅ Paystack integration with backend verification
     document.getElementById("payBtn").addEventListener("click", () => {
       const name = document.getElementById("name").value.trim();
       const email = document.getElementById("email").value.trim();
@@ -256,8 +255,18 @@
         return;
       }
 
+      const orderData = {
+        name,
+        email,
+        phone,
+        address,
+        junction,
+        items: tastyPacks,
+        totalAmount: grandTotal,
+      };
+
       const handler = PaystackPop.setup({
-        key: "pk_test_72e7641a30dcdbad32a51606354065cc5b62f20f",
+        key: "pk_test_72e7641a30dcdbad32a51606354065cc5b62f20f", // ✅ your public key
         email,
         amount: grandTotal * 100,
         currency: "NGN",
@@ -270,17 +279,35 @@
           ],
         },
         callback: function (response) {
-          alert("Payment successful! Reference: " + response.reference);
-          localStorage.removeItem("tastyPacks");
-          localStorage.removeItem("activePack");
-          window.location.href = "confirmation.html";
+          // ✅ Send to backend for verification
+          fetch("https://restaurant-eqbo.onrender.com/api/payment/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reference: response.reference, orderData }),
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                alert("✅ Payment successful and order saved!");
+                localStorage.removeItem("tastyPacks");
+                localStorage.removeItem("activePack");
+                window.location.href = "confirmation.html";
+              } else {
+                alert("❌ Payment verification failed. Please contact support.");
+              }
+            })
+            .catch(err => {
+              console.error("Error verifying payment:", err);
+              alert("Error verifying payment. Try again later.");
+            });
         },
         onClose: function () {
           alert("Payment cancelled.");
         },
       });
+
       handler.openIframe();
     });
   </script>
 </body>
-</html>
+        </html>
