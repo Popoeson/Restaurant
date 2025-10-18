@@ -128,100 +128,66 @@
   </div>
 
 <script>
-  (async () => {
-    const orderId = localStorage.getItem("lastOrderID");
-    const orderItemsDiv = document.getElementById("orderItems");
-    const orderTotalDiv = document.getElementById("orderTotal");
-    const orderIdDiv = document.getElementById("orderId");
-    const nameDiv = document.getElementById("customerName");
+  const orderId = localStorage.getItem("lastOrderID");
+  const orderItemsDiv = document.getElementById("orderItems");
+  const orderTotalDiv = document.getElementById("orderTotal");
+  const orderIdDiv = document.getElementById("orderId");
+  const nameDiv = document.getElementById("customerName");
 
-    // ✅ No order ID found
-    if (!orderId) {
-      document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>No order found</h2>";
-      return;
-    }
+  if (!orderId) {
+    document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>No order found</h2>";
+  } else {
+    fetch(`https://restaurant-eqbo.onrender.com/api/orders/${orderId}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Order not found");
+        return res.json();
+      })
+      .then(order => {
+        console.log("✅ Order loaded:", order);
+        const { reference, name, phone, items, totalAmount } = order;
 
-    try {
-      // ✅ Fetch order details from backend using orderId
-      const res = await fetch(`https://restaurant-eqbo.onrender.com/api/orders/${orderId}`);
-      if (!res.ok) throw new Error("Order not found");
+        nameDiv.textContent = name;
+        orderIdDiv.textContent = reference;
 
-      const orderData = await res.json();
-      const { name, phone, items, totalAmount } = orderData;
+        // ✅ Loop through packs
+        Object.entries(items).forEach(([packName, packItems]) => {
+          const packHeader = document.createElement("h4");
+          packHeader.style.color = "#ff7b00";
+          packHeader.style.marginTop = "10px";
+          packHeader.textContent = packName;
+          orderItemsDiv.appendChild(packHeader);
 
-      // ✅ Display order info
-      nameDiv.textContent = name;
-      orderIdDiv.textContent = orderId;
-
-      // ✅ Loop through packs and items
-      Object.entries(items).forEach(([packName, packItems]) => {
-        const packDiv = document.createElement("div");
-        packDiv.classList.add("pack");
-
-        const header = document.createElement("div");
-        header.classList.add("pack-header");
-        header.innerHTML = `<span>${packName}</span><span class="arrow">▼</span>`;
-
-        const itemContainer = document.createElement("div");
-        itemContainer.classList.add("pack-items");
-
-        packItems.forEach(item => {
-          const itemDiv = document.createElement("div");
-          itemDiv.classList.add("order-item");
-          itemDiv.innerHTML = `
-            <div class="item-details">
-              <img src="${item.img || item.imageUrl || 'https://via.placeholder.com/40'}" alt="${item.name}">
-              <span>${item.name} (x${item.qty})</span>
-            </div>
-            <span>₦${(item.price * item.qty).toLocaleString()}</span>
-          `;
-          itemContainer.appendChild(itemDiv);
-        });
-
-        header.addEventListener("click", () => {
-          const isOpen = header.classList.toggle("open");
-          if (isOpen) {
-            itemContainer.style.maxHeight = itemContainer.scrollHeight + "px";
-            itemContainer.style.padding = "10px";
-          } else {
-            itemContainer.style.maxHeight = "0";
-            itemContainer.style.padding = "0 10px";
+          if (Array.isArray(packItems)) {
+            packItems.forEach(item => {
+              const div = document.createElement("div");
+              div.classList.add("order-item");
+              div.innerHTML = `<span>${item.name} (x${item.qty})</span><span>₦${(item.price * item.qty).toLocaleString()}</span>`;
+              orderItemsDiv.appendChild(div);
+            });
           }
         });
 
-        packDiv.appendChild(header);
-        packDiv.appendChild(itemContainer);
-        orderItemsDiv.appendChild(packDiv);
-      });
+        orderTotalDiv.textContent = `Total: ₦${totalAmount.toLocaleString()}`;
 
-      orderTotalDiv.textContent = `Total: ₦${totalAmount.toLocaleString()}`;
-
-      // ✅ Send confirmation SMS through backend (Termii)
-      try {
-        const smsRes = await fetch("https://restaurant-eqbo.onrender.com/api/notify-sms", {
+        // ✅ Send SMS confirmation via backend (Termii)
+        fetch("https://restaurant-eqbo.onrender.com/api/notify-sms", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             phone,
+            reference,
             name,
-            reference: orderId,
           }),
-        });
-
-        if (smsRes.ok) {
-          console.log("✅ SMS sent successfully");
-        } else {
-          console.warn("⚠️ Failed to send SMS:", await smsRes.text());
-        }
-      } catch (smsErr) {
-        console.error("⚠️ Error sending SMS:", smsErr);
-      }
-
-    } catch (err) {
-      console.error("Error loading order:", err);
-      document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Order not found</h2>";
-    }
-  })();
+        }).then(res => {
+          if (res.ok) console.log("✅ SMS sent successfully");
+          else console.warn("⚠️ SMS not sent:", res.status);
+        }).catch(err => console.error("⚠️ SMS error:", err));
+      })
+      .catch(err => {
+        console.error("Error loading order:", err);
+        document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Error loading order</h2>";
+      });
+  }
 </script>
 </body>
 </html>
