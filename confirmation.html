@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmation - TastyBite</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #fff8f2;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .confirmation-container {
+      background: #fff;
+      width: 95%;
+      max-width: 500px;
+      margin: 40px auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff7b00;
+      font-size: 26px;
+    }
+
+    .success-icon {
+      font-size: 60px;
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+
+    .order-id {
+      background: #fff4e5;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      color: #ff7b00;
+      font-weight: 500;
+      margin: 15px 0;
+      word-break: break-all;
+    }
+
+    .order-summary {
+      text-align: left;
+      background: #fff7f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .order-summary h3 {
+      margin-top: 0;
+      color: #ff7b00;
+      font-size: 18px;
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .order-total {
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      font-weight: bold;
+      color: #ff7b00;
+      text-align: right;
+      margin-top: 10px;
+    }
+
+    button {
+      background: #ff7b00;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 25px;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #e86f00;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="confirmation-container">
+    <div class="success-icon">✅</div>
+    <h1>Order Confirmed!</h1>
+    <p>Thank you for your order, <span id="customerName"></span> 🎉</p>
+
+    <p>Your food will arrive in approximately <b>30–45 minutes</b>.</p>
+
+    <div class="order-id">
+      Order ID: <span id="orderId"></span>
+    </div>
+
+    <div class="order-summary">
+      <h3>Order Summary</h3>
+      <div id="orderItems"></div>
+      <div class="order-total" id="orderTotal"></div>
+    </div>
+
+    <p class="note">Keep your Order ID safe — the dispatcher will confirm it upon delivery.</p>
+
+    <button onclick="window.location.href='index.html'">Back to Home</button>
+  </div>
+
+  <script>
+    const orderData = JSON.parse(localStorage.getItem("lastOrder")) || null;
+    const orderItemsDiv = document.getElementById("orderItems");
+    const orderTotalDiv = document.getElementById("orderTotal");
+    const orderIdDiv = document.getElementById("orderId");
+    const nameDiv = document.getElementById("customerName");
+
+    if (!orderData) {
+      document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>No order found</h2>";
+    } else {
+      const { orderId, name, items, total, phone } = orderData;
+      nameDiv.textContent = name;
+      orderIdDiv.textContent = orderId;
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.classList.add("order-item");
+        div.innerHTML = `<span>${item.name} (x${item.qty})</span><span>₦${(item.price * item.qty).toLocaleString()}</span>`;
+        orderItemsDiv.appendChild(div);
+      });
+
+      orderTotalDiv.textContent = `Total: ₦${total.toLocaleString()}`;
+
+      // ✅ Send SMS confirmation via backend (Termii)
+      (async () => {
+        try {
+          const res = await fetch("https://tastybite.onrender.com/api/send-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone,
+              message: `Hi ${name}, your order (${orderId}) has been confirmed! Please show this code to the dispatcher.`
+            }),
+          });
+
+          if (res.ok) {
+            console.log("✅ SMS sent successfully");
+          } else {
+            console.warn("⚠️ Failed to send SMS:", await res.text());
+          }
+        } catch (err) {
+          console.error("⚠️ SMS request error:", err);
+        }
+      })();
+    }
+  </script>
+</body>
+</html>
