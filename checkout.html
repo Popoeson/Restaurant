@@ -160,125 +160,117 @@
 <body>
   <div class="checkout-container">
     <h1>Checkout</h1>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+  // Load cart data from localStorage
+  const tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
+  const deliveryFee = 500;
+  const takeawayPrice = 200;
 
-    <h3>Delivery Details</h3>
-    <form id="deliveryForm">
-      <input type="text" id="name" placeholder="Full Name" required />
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="tel" id="phone" placeholder="Phone Number" required />
-      <input type="text" id="address" placeholder="Delivery Address" required />
-      <input type="text" id="junction" placeholder="Nearest Junction" required />
-    </form>
+  const orderItems = document.getElementById("orderItems");
+  const orderTotal = document.getElementById("orderTotal");
 
-    <div class="order-summary">
-      <h3>Order Summary</h3>
-      <div id="orderItems"></div>
-      <div class="order-total" id="orderTotal"></div>
-    </div>
+  let subtotal = 0;
+  let numPacks = Object.keys(tastyPacks).length;
 
-    <button id="payBtn">Proceed to Payment</button>
-  </div>
+  orderItems.innerHTML = "";
 
-  <script src="https://js.paystack.co/v1/inline.js"></script>
-  <script>
-    // Load cart data from localStorage
-    const tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
-    const deliveryFee = 500;
-    const takeawayPrice = 200;
+  Object.entries(tastyPacks).forEach(([packName, items]) => {
+    const packDiv = document.createElement("div");
+    packDiv.classList.add("pack");
 
-    const orderItems = document.getElementById("orderItems");
-    const orderTotal = document.getElementById("orderTotal");
+    const header = document.createElement("div");
+    header.classList.add("pack-header");
+    header.innerHTML = `<span>${packName}</span><span class="arrow">▼</span>`;
 
-    let subtotal = 0;
-    let numPacks = Object.keys(tastyPacks).length;
+    const itemContainer = document.createElement("div");
+    itemContainer.classList.add("pack-items");
 
-    orderItems.innerHTML = "";
+    items.forEach(item => {
+      const itemTotal = item.price * item.qty;
+      subtotal += itemTotal;
 
-    Object.entries(tastyPacks).forEach(([packName, items]) => {
-      const packDiv = document.createElement("div");
-      packDiv.classList.add("pack");
-
-      const header = document.createElement("div");
-      header.classList.add("pack-header");
-      header.innerHTML = `<span>${packName}</span><span class="arrow">▼</span>`;
-
-      const itemContainer = document.createElement("div");
-      itemContainer.classList.add("pack-items");
-
-      items.forEach(item => {
-        const itemTotal = item.price * item.qty;
-        subtotal += itemTotal;
-
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("order-item");
-        itemDiv.innerHTML = `
-          <div class="item-details">
-            <img src="${item.image || 'https://via.placeholder.com/40'}" alt="${item.name}">
-            <span>${item.name} (x${item.qty})</span>
-          </div>
-          <span>₦${itemTotal.toLocaleString()}</span>
-        `;
-        itemContainer.appendChild(itemDiv);
-      });
-
-      header.addEventListener("click", () => {
-        const open = itemContainer.classList.toggle("open");
-        header.classList.toggle("open", open);
-      });
-
-      packDiv.appendChild(header);
-      packDiv.appendChild(itemContainer);
-      orderItems.appendChild(packDiv);
+      const itemDiv = document.createElement("div");
+      itemDiv.classList.add("order-item");
+      itemDiv.innerHTML = `
+        <div class="item-details">
+          <img src="${item.image || 'https://via.placeholder.com/40'}" alt="${item.name}">
+          <span>${item.name} (x${item.qty})</span>
+        </div>
+        <span>₦${itemTotal.toLocaleString()}</span>
+      `;
+      itemContainer.appendChild(itemDiv);
     });
 
-    const takeawayTotal = numPacks * takeawayPrice;
-    const grandTotal = subtotal + deliveryFee + takeawayTotal;
+    // ✅ Animate expand/collapse using JS instead of fixed max-height
+    header.addEventListener("click", () => {
+      const isOpen = header.classList.toggle("open");
 
-    orderItems.innerHTML += `
-      <div class="order-item"><span>Takeaway Packs (${numPacks})</span><span>₦${takeawayTotal.toLocaleString()}</span></div>
-      <div class="order-item"><span>Delivery Fee</span><span>₦${deliveryFee.toLocaleString()}</span></div>
-    `;
-
-    orderTotal.textContent = `Total: ₦${grandTotal.toLocaleString()}`;
-
-    // Paystack Payment Logic
-    document.getElementById("payBtn").addEventListener("click", () => {
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const address = document.getElementById("address").value.trim();
-      const junction = document.getElementById("junction").value.trim();
-
-      if (!name || !email || !phone || !address || !junction) {
-        alert("Please fill in all delivery details.");
-        return;
+      if (isOpen) {
+        itemContainer.style.maxHeight = itemContainer.scrollHeight + "px";
+        itemContainer.style.padding = "10px";
+      } else {
+        itemContainer.style.maxHeight = "0";
+        itemContainer.style.padding = "0 10px";
       }
-
-      const handler = PaystackPop.setup({
-        key: "pk_test_xxxxxxxxxxxxxxxxxxxxx", // Replace with your Paystack public key
-        email: email,
-        amount: grandTotal * 100,
-        currency: "NGN",
-        ref: "ORD" + Math.floor(Math.random() * 1000000000),
-        metadata: {
-          custom_fields: [
-            { display_name: "Customer Name", variable_name: "customer_name", value: name },
-            { display_name: "Phone", variable_name: "phone", value: phone },
-            { display_name: "Address", variable_name: "address", value: address + " (Near " + junction + ")" },
-          ],
-        },
-        callback: function(response) {
-          alert("Payment successful! Reference: " + response.reference);
-          localStorage.removeItem("tastyPacks");
-          localStorage.removeItem("activePack");
-          window.location.href = "confirmation.html";
-        },
-        onClose: function() {
-          alert("Payment cancelled.");
-        },
-      });
-      handler.openIframe();
     });
-  </script>
+
+    packDiv.appendChild(header);
+    packDiv.appendChild(itemContainer);
+    orderItems.appendChild(packDiv);
+  });
+
+  const takeawayTotal = numPacks * takeawayPrice;
+  const grandTotal = subtotal + deliveryFee + takeawayTotal;
+
+  // Extra summary section
+  const extraDiv = document.createElement("div");
+  extraDiv.innerHTML = `
+    <div class="order-item"><span>Takeaway Packs (${numPacks})</span><span>₦${takeawayTotal.toLocaleString()}</span></div>
+    <div class="order-item"><span>Delivery Fee</span><span>₦${deliveryFee.toLocaleString()}</span></div>
+  `;
+  orderItems.appendChild(extraDiv);
+
+  orderTotal.textContent = `Total: ₦${grandTotal.toLocaleString()}`;
+
+  // Paystack Payment Logic
+  document.getElementById("payBtn").addEventListener("click", () => {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const junction = document.getElementById("junction").value.trim();
+
+    if (!name || !email || !phone || !address || !junction) {
+      alert("Please fill in all delivery details.");
+      return;
+    }
+
+    const handler = PaystackPop.setup({
+      key: "pk_test_xxxxxxxxxxxxxxxxxxxxx", // Replace with your Paystack public key
+      email: email,
+      amount: grandTotal * 100,
+      currency: "NGN",
+      ref: "ORD" + Math.floor(Math.random() * 1000000000),
+      metadata: {
+        custom_fields: [
+          { display_name: "Customer Name", variable_name: "customer_name", value: name },
+          { display_name: "Phone", variable_name: "phone", value: phone },
+          { display_name: "Address", variable_name: "address", value: address + " (Near " + junction + ")" },
+        ],
+      },
+      callback: function (response) {
+        alert("Payment successful! Reference: " + response.reference);
+        localStorage.removeItem("tastyPacks");
+        localStorage.removeItem("activePack");
+        window.location.href = "confirmation.html";
+      },
+      onClose: function () {
+        alert("Payment cancelled.");
+      },
+    });
+    handler.openIframe();
+  });
+</script>
 </body>
         </html>
