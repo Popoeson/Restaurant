@@ -13,9 +13,10 @@ app.use(express.json());
 app.use(cors());
 
 // ====== MongoDB Connection ======
-mongoose.connect(MONGO_URI);
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB error:", err));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 // ====== Cloudinary Config ======
 cloudinary.config({
@@ -86,7 +87,13 @@ app.post("/api/menu", upload.single("image"), async (req, res) => {
 app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
   try {
     const { name, description, category, price, featured } = req.body;
-    const updateData = { name, description, category, price, featured: featured === "true" };
+    const updateData = {
+      name,
+      description,
+      category,
+      price,
+      featured: featured === "true",
+    };
 
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
@@ -96,7 +103,9 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    const updated = await Menu.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const updated = await Menu.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
     res.json({ message: "Menu item updated", item: updated });
   } catch (err) {
     res.status(500).json({ message: "Error updating item", error: err });
