@@ -279,27 +279,48 @@
   </main>
 
   <script>
-    // Sidebar toggle
-    document.getElementById("toggleMenu").addEventListener("click", () => {
-      document.getElementById("sidebar").classList.toggle("active");
-    });
+  const backendURL = "https://restaurant-eqbo.onrender.com";
 
-    // Example backend fetch logic (replace URL later)
-    async function loadDashboardData() {
-      try {
-        const res = await fetch("https://your-backend-url.com/api/admin/stats");
-        const data = await res.json();
+  // Sidebar toggle
+  document.getElementById("toggleMenu").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("active");
+  });
 
-        document.getElementById("revenue").textContent = `$${data.revenue.toFixed(2)}`;
-        document.getElementById("ordersCount").textContent = data.totalOrders;
-        document.getElementById("pendingOrders").textContent = data.pendingOrders;
-        document.getElementById("processingOrders").textContent = data.processingOrders;
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-      }
+  async function loadDashboardData() {
+    try {
+      const res = await fetch(`${backendURL}/api/admin/stats`);
+      const data = await res.json();
+
+      // ✅ Update summary cards
+      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
+      document.getElementById("ordersCount").textContent = data.totalOrders;
+      document.getElementById("pendingOrders").textContent = data.pendingOrders;
+      document.getElementById("processingOrders").textContent = data.processingOrders;
+
+      // ✅ Populate Recent Orders Table
+      const tbody = document.querySelector("#recentOrdersTable tbody");
+      tbody.innerHTML = "";
+
+      data.recentOrders.forEach((order, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>#${index + 1}</td>
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+          <td>
+            <span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">
+              ${order.status || "pending"}
+            </span>
+          </td>
+          <td>₦${order.totalAmount.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
     }
+  }
 
-    loadDashboardData();
+  loadDashboardData();
   </script>
 </body>
   </html>
