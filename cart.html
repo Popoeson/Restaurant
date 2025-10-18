@@ -37,6 +37,14 @@
     .cart-item {
       display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
     }
+    
+    .pack-card.active-pack {
+  transform: scale(1.05);
+  border: 2px solid #ff6600;
+  box-shadow: 0 4px 16px rgba(255,102,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
     .cart-item img { width:80px; height:70px; border-radius:8px; object-fit:cover; }
     .item-info { display:flex; gap:10px; align-items:center; flex:1; }
     .item-info h4 { margin-bottom:4px; }
@@ -44,6 +52,12 @@
     .item-actions span { min-width:25px; text-align:center; font-weight:600; }
 
     .pack-subtotal { text-align:right; margin-top:10px; font-weight:700; color:#ff6600; }
+
+    .add-more-btn {
+      margin-top:10px; width:100%; padding:10px; border-radius:8px; border:none;
+      background:linear-gradient(90deg,#ff8800,#ff5500);
+      color:#fff; font-weight:600; cursor:pointer;
+    }
 
     .summary {
       background:#fff; border-radius:12px; padding:16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -112,154 +126,186 @@
   </main>
 
   <script>
-    const packsContainer = document.getElementById("packsContainer");
-    const subtotalElement = document.getElementById("subtotal");
-    const grandTotalElement = document.getElementById("grandTotal");
-    const addPackBtn = document.getElementById("addPackBtn");
-    const suggestGrid = document.getElementById("suggestGrid");
-    const proceedCheckout = document.getElementById("proceedCheckout");
+const packsContainer = document.getElementById("packsContainer");
+const subtotalElement = document.getElementById("subtotal");
+const grandTotalElement = document.getElementById("grandTotal");
+const addPackBtn = document.getElementById("addPackBtn");
+const suggestGrid = document.getElementById("suggestGrid");
+const proceedCheckout = document.getElementById("proceedCheckout");
 
-    let tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
-    let activePack = localStorage.getItem("activePack") || "Pack 1";
-    const deliveryFee = 500;
+let tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
+let activePack = localStorage.getItem("activePack") || "Pack 1";
+const deliveryFee = 500;
 
-    // ---- Helper ----
-    function saveData() {
-      localStorage.setItem("tastyPacks", JSON.stringify(tastyPacks));
-      localStorage.setItem("activePack", activePack);
-    }
+// ---- Helper ----
+function saveData() {
+  if (Object.keys(tastyPacks).length === 0) {
+    localStorage.removeItem("tastyPacks");
+    localStorage.removeItem("activePack");
+  } else {
+    localStorage.setItem("tastyPacks", JSON.stringify(tastyPacks));
+    localStorage.setItem("activePack", activePack);
+  }
+}
 
-    function calcTotal() {
-      let total = 0;
-      Object.values(tastyPacks).forEach(pack => {
-        pack.forEach(item => total += item.price * item.qty);
-      });
-      return total;
-    }
+function calcTotal() {
+  let total = 0;
+  Object.values(tastyPacks).forEach(pack => {
+    pack.forEach(item => total += item.price * item.qty);
+  });
+  return total;
+}
 
-    // ---- Render ----
-    function render() {
-      packsContainer.innerHTML = "";
-      let keys = Object.keys(tastyPacks);
-      if (keys.length === 0) {
-        packsContainer.innerHTML = `<p style="text-align:center;color:#777;">Your cart is empty. <a href='menu.html' style='color:#ff6600;'>Go to Menu</a></p>`;
-        subtotalElement.textContent = "₦0";
-        grandTotalElement.textContent = "₦0";
-        return;
-      }
+// ---- Render ----
+function render() {
+  packsContainer.innerHTML = "";
+  let keys = Object.keys(tastyPacks);
+  if (keys.length === 0) {
+    packsContainer.innerHTML = `<p style="text-align:center;color:#777;">Your cart is empty. <a href='menu.html' style='color:#ff6600;'>Go to Menu</a></p>`;
+    subtotalElement.textContent = "₦0";
+    grandTotalElement.textContent = "₦0";
+    saveData();
+    return;
+  }
 
-      let subtotal = 0;
-      keys.forEach(key => {
-        let pack = tastyPacks[key];
-        let packSubtotal = 0;
-        let itemsHTML = pack.map((item, i) => {
-          packSubtotal += item.price * item.qty;
-          return `
-            <div class="cart-item">
-              <div class="item-info">
-                <img src="${item.img}" alt="${item.name}">
-                <div>
-                  <h4>${item.name}</h4>
-                  <p>₦${item.price.toLocaleString()}</p>
-                </div>
-              </div>
-              <div class="item-actions">
-                <button onclick="decreaseQty('${key}', ${i})">-</button>
-                <span>${item.qty}</span>
-                <button onclick="increaseQty('${key}', ${i})">+</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        subtotal += packSubtotal;
-
-        packsContainer.innerHTML += `
-          <div class="pack-card">
-            <div class="pack-header">
-              <h3>${key}</h3>
-              <div>
-                <button onclick="duplicatePack(event,'${key}')">Duplicate</button>
-                <button onclick="removePack(event,'${key}')">Remove</button>
-              </div>
+  let subtotal = 0;
+  keys.forEach(key => {
+    let pack = tastyPacks[key];
+    let packSubtotal = 0;
+    let itemsHTML = pack.map((item, i) => {
+      packSubtotal += item.price * item.qty;
+      return `
+        <div class="cart-item">
+          <div class="item-info">
+            <img src="${item.img}" alt="${item.name}">
+            <div>
+              <h4>${item.name}</h4>
+              <p>₦${item.price.toLocaleString()}</p>
             </div>
-            <div class="pack-body">
-              ${itemsHTML}
-              <div class="pack-subtotal">Subtotal: ₦${packSubtotal.toLocaleString()}</div>
-            </div>
-          </div>`;
-      });
+          </div>
+          <div class="item-actions">
+            <button onclick="decreaseQty('${key}', ${i})">-</button>
+            <span>${item.qty}</span>
+            <button onclick="increaseQty('${key}', ${i})">+</button>
+          </div>
+        </div>`;
+    }).join("");
 
-      subtotalElement.textContent = `₦${subtotal.toLocaleString()}`;
-      grandTotalElement.textContent = `₦${(subtotal + deliveryFee).toLocaleString()}`;
-      saveData();
-    }
+    subtotal += packSubtotal;
 
-    // ---- Controls ----
-    function increaseQty(key, i) {
-      tastyPacks[key][i].qty++;
-      render();
-    }
-
-    function decreaseQty(key, i) {
-      let item = tastyPacks[key][i];
-      if (item.qty > 1) item.qty--;
-      else tastyPacks[key].splice(i, 1);
-      if (tastyPacks[key].length === 0) delete tastyPacks[key];
-      render();
-    }
-
-    function removePack(e, key) {
-      e.stopPropagation();
-      delete tastyPacks[key];
-      render();
-    }
-
-    function duplicatePack(e, key) {
-      e.stopPropagation();
-      const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
-      tastyPacks[newKey] = JSON.parse(JSON.stringify(tastyPacks[key]));
-      render();
-    }
-
-    addPackBtn.onclick = () => {
-      const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
-      tastyPacks[newKey] = [];
-      localStorage.setItem("activePack", newKey);
-      saveData();
-      window.location.href = "menu.html";
-    };
-
-    // ---- Suggestions ----
-    const suggestions = [
-      { name: "Beef", price: 500, img: "https://images.unsplash.com/photo-1604909052743-94e9f0a9b3b8?auto=format&fit=crop&w=400&q=60" },
-      { name: "Plantain", price: 300, img: "https://images.unsplash.com/photo-1586201375761-83865001e17c?auto=format&fit=crop&w=400&q=60" },
-      { name: "Coleslaw", price: 200, img: "https://images.unsplash.com/photo-1613470202419-b12899ee4a32?auto=format&fit=crop&w=400&q=60" },
-      { name: "Moi Moi", price: 250, img: "https://images.unsplash.com/photo-1598514982631-7eaa23f87c2c?auto=format&fit=crop&w=400&q=60" },
-    ];
-
-    function renderSuggestions() {
-      suggestGrid.innerHTML = suggestions.map(item => `
-        <div class="s-card">
-          <img src="${item.img}" alt="${item.name}">
-          <p>${item.name} - ₦${item.price}</p>
-          <button onclick='addSuggestion("${item.name}", ${item.price}, "${item.img}")'>Add</button>
+    packsContainer.innerHTML += `
+      <div class="pack-card ${key === activePack ? "active-pack" : ""}" onclick="setActivePack('${key}')">
+        <div class="pack-header">
+          <h3>${key}</h3>
+          <div>
+            <button onclick="duplicatePack(event,'${key}')">Duplicate</button>
+            <button onclick="removePack(event,'${key}')">Remove</button>
+          </div>
         </div>
-      `).join("");
-    }
+        <div class="pack-body">
+          ${itemsHTML}
+          <div class="pack-subtotal">Subtotal: ₦${packSubtotal.toLocaleString()}</div>
+          <button class="add-more-btn" onclick="addMoreFood('${key}')">+ Add More Food</button>
+        </div>
+      </div>`;
+  });
 
-    function addSuggestion(name, price, img) {
-      if (!tastyPacks[activePack]) tastyPacks[activePack] = [];
-      tastyPacks[activePack].push({ name, price, img, qty: 1 });
-      saveData();
-      alert(`${name} added to ${activePack}`);
-      render();
-    }
+  subtotalElement.textContent = `₦${subtotal.toLocaleString()}`;
+  grandTotalElement.textContent = `₦${(subtotal + deliveryFee).toLocaleString()}`;
+  saveData();
+}
 
-    proceedCheckout.onclick = () => window.location.href = "checkout.html";
+// ---- Controls ----
+function increaseQty(key, i) {
+  tastyPacks[key][i].qty++;
+  render();
+}
 
-    // ---- Init ----
-    renderSuggestions();
-    render();
-  </script>
+function decreaseQty(key, i) {
+  let item = tastyPacks[key][i];
+  if (item.qty > 1) item.qty--;
+  else tastyPacks[key].splice(i, 1);
+  if (tastyPacks[key].length === 0) delete tastyPacks[key];
+  render();
+}
+
+function removePack(e, key) {
+  e.stopPropagation();
+  delete tastyPacks[key];
+  render();
+}
+
+function duplicatePack(e, key) {
+  e.stopPropagation();
+  const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
+  tastyPacks[newKey] = JSON.parse(JSON.stringify(tastyPacks[key]));
+  render();
+}
+
+function addMoreFood(packKey) {
+  activePack = packKey;
+  saveData();
+  window.location.href = "menu.html";
+}
+
+addPackBtn.onclick = () => {
+  const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
+  tastyPacks[newKey] = [];
+  activePack = newKey;
+  saveData();
+  window.location.href = "menu.html";
+};
+
+function setActivePack(key) {
+  activePack = key;
+  saveData();
+  render();
+}
+
+// ---- Suggestions ----
+async function fetchSuggestions() {
+  try {
+    const res = await fetch("https://restaurant-eqbo.onrender.com/api/menu");
+    const data = await res.json();
+    return data.filter(item => {
+      if (Array.isArray(item.category)) return item.category.includes("Extras");
+      return item.category === "Extras";
+    });
+  } catch (err) {
+    console.error("Error fetching suggestions:", err);
+    return [];
+  }
+}
+
+async function renderSuggestions() {
+  const suggestions = await fetchSuggestions();
+  if (suggestions.length === 0) {
+    suggestGrid.innerHTML = "<p style='color:#777;text-align:center;'>No extras available</p>";
+    return;
+  }
+  suggestGrid.innerHTML = suggestions.map(item => `
+    <div class="s-card">
+      <img src="${item.imageUrl}" alt="${item.name}">
+      <p>${item.name} - ₦${parseFloat(item.price).toLocaleString()}</p>
+      <button onclick='addSuggestion("${item.name}", ${item.price}, "${item.imageUrl}")'>Add</button>
+    </div>
+  `).join("");
+}
+
+function addSuggestion(name, price, img) {
+  if (!tastyPacks[activePack]) tastyPacks[activePack] = [];
+  tastyPacks[activePack].push({ name, price, img, qty: 1 });
+  saveData();
+  alert(`${name} added to ${activePack}`);
+  render();
+}
+
+// ---- Checkout ----
+proceedCheckout.onclick = () => window.location.href = "checkout.html";
+
+// ---- Init ----
+renderSuggestions();
+render();
+</script>
 </body>
 </html>
