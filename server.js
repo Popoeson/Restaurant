@@ -243,6 +243,24 @@ app.get("/api/orders/:id", async (req, res) => {
   }
 });
 
+  // DELETE an order by ID
+app.delete("/api/orders/:id", async (req, res) => {
+  try {
+    const orderId = req.params.id;
+
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+
+    if (!deletedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({ message: "Order deleted successfully", deletedOrder });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).json({ message: "Server error deleting order" });
+  }
+});
+
 // ====== Server Start ======
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
