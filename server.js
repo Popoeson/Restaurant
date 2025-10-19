@@ -173,7 +173,7 @@ app.delete("/api/menu/:id", async (req, res) => {
 });
 
 // === PAYSTACK PAYMENT VERIFICATION ===
-app.post("/api/verify/payment", async (req, res) => {
+app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderDetails } = req.body;
     console.log("🔍 Verifying Paystack reference:", reference);
