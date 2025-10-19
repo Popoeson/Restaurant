@@ -7,8 +7,6 @@
 
 <!-- OneSignal SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<!-- Socket.IO (via jsDelivr) -->
-<script src="https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js"></script>
 
 <style>
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
@@ -66,7 +64,6 @@
       </div>
       <div class="card-icon">💰</div>
     </div>
-
     <div class="card">
       <div>
         <h3>Total Orders</h3>
@@ -74,7 +71,6 @@
       </div>
       <div class="card-icon">🛍️</div>
     </div>
-
     <div class="card">
       <div>
         <h3>Pending Orders</h3>
@@ -82,7 +78,6 @@
       </div>
       <div class="card-icon">⏳</div>
     </div>
-
     <div class="card">
       <div>
         <h3>Processing Orders</h3>
@@ -103,14 +98,7 @@
           <th>Amount</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>#001</td>
-          <td>2025-10-16</td>
-          <td><span style="color:green;font-weight:600;">Delivered</span></td>
-          <td>₦25.00</td>
-        </tr>
-      </tbody>
+      <tbody></tbody>
     </table>
   </section>
 </main>
@@ -119,55 +107,48 @@
 document.addEventListener("DOMContentLoaded", () => {
   const backendURL = "https://restaurant-eqbo.onrender.com";
 
-  // ---------- WebSocket Setup ----------
-  const socket = io(backendURL); // io is now guaranteed to exist
+  // ---------- Dynamically load Socket.IO ----------
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js";
+  script.onload = () => {
+    const socket = io(backendURL);
 
-  socket.on("connect", () => {
-    console.log("✅ Connected to WebSocket server:", socket.id);
-  });
+    socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
+    socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
+    socket.on("newOrder", order => {
+      console.log("⚡ New order received:", order);
 
-  socket.on("disconnect", () => {
-    console.warn("⚠️ Disconnected from WebSocket server");
-  });
+      const ordersCountEl = document.getElementById("ordersCount");
+      const pendingOrdersEl = document.getElementById("pendingOrders");
+      const processingOrdersEl = document.getElementById("processingOrders");
+      const revenueEl = document.getElementById("revenue");
+      const notifIcon = document.getElementById("notifIcon");
 
-  socket.on("newOrder", (order) => {
-    console.log("⚡ New order received via WebSocket:", order);
+      ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+      pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+      processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+      revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
+      notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
 
-    const ordersCountEl = document.getElementById("ordersCount");
-    const pendingOrdersEl = document.getElementById("pendingOrders");
-    const revenueEl = document.getElementById("revenue");
-    const processingOrdersEl = document.getElementById("processingOrders");
-    const notifIcon = document.getElementById("notifIcon");
-
-    ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
-    pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
-    processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
-    revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
-    notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
-
-    const tbody = document.querySelector("#recentOrdersTable tbody");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>#${parseInt(ordersCountEl.textContent)}</td>
-      <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-      <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-      <td>₦${order.totalAmount.toLocaleString()}</td>
-    `;
-    tbody.prepend(tr);
-  });
-
-  // ---------- OneSignal Setup ----------
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-      notifyButton: { enable: true },
+      const tbody = document.querySelector("#recentOrdersTable tbody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>#${ordersCountEl.textContent}</td>
+        <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+        <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+        <td>₦${order.totalAmount.toLocaleString()}</td>
+      `;
+      tbody.prepend(tr);
     });
+  };
+  document.head.appendChild(script);
 
-    try { OneSignal.showSlidedownPrompt(); } 
-    catch (err) { console.warn("Slidedown prompt failed:", err); }
-
-    OneSignal.on("notificationDisplay", function(event) {
+  // ---------- OneSignal ----------
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(() => {
+    OneSignal.init({ appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", notifyButton: { enable: true } });
+    try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
+    OneSignal.on("notificationDisplay", event => {
       console.log("Notification displayed:", event);
       const notifIcon = document.getElementById("notifIcon");
       notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
@@ -183,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadDashboardData() {
     try {
       const res = await fetch(`${backendURL}/api/admin/stats`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
       document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
@@ -202,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         tbody.appendChild(tr);
       });
-    } catch (err) {
+    } catch(err) {
       console.error("Failed to fetch dashboard data:", err);
     }
   }
@@ -211,4 +193,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 </body>
-        </html>
+  </html>
