@@ -184,7 +184,7 @@ app.delete("/api/menu/:id", async (req, res) => {
   }
 });
 
-// ====== Verify Paystack Payment + Send SMS ======
+// ====== Verify Paystack Payment + Send SMS + OneSignal ======
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
@@ -196,45 +196,27 @@ app.post("/api/payment/verify", async (req, res) => {
     const data = response.data.data;
 
     if (data.status === "success") {
-
       // ✅ Save order
-const newOrder = new Order({
-  name: orderData.name,
-  email: orderData.email,
-  phone: orderData.phone,
-  address: orderData.address,
-  junction: orderData.junction,
-  items: orderData.items,
-  totalAmount: orderData.totalAmount,
-  reference,
-  status: "paid",
-});
+      const newOrder = new Order({
+        name: orderData.name,
+        email: orderData.email,
+        phone: orderData.phone,
+        address: orderData.address,
+        junction: orderData.junction,
+        items: orderData.items,
+        totalAmount: orderData.totalAmount,
+        reference,
+        status: "paid",
+      });
 
-await newOrder.save();
+      await newOrder.save();
 
-// ✅ Send OneSignal notification to admin
-const notifTitle = "New Order Received!";
-const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
-sendOneSignalNotification(notifTitle, notifMessage);
+      // ✅ Send OneSignal notification to all subscribed admins
+      const notifTitle = "New Order Received!";
+      const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
+      sendOneSignalNotification(notifTitle, notifMessage);
 
-// ✅ Send SMS using Termii
-      
-      // ✅ Save order
-  //    const newOrder = new Order({
-    //    name: orderData.name,
-   //     email: orderData.email,
-   //     phone: orderData.phone,
-   //     address: orderData.address,
-   //     junction: orderData.junction,
-   //     items: orderData.items,
-   //     totalAmount: orderData.totalAmount,
-   //     reference,
-   //     status: "paid",
-  //    });
-
-  //    await newOrder.save();
-
-      // ✅ Send SMS using Termii
+      // ✅ Send SMS via Termii
       const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
 Order ID: ${reference}.
 Keep this ID safe — your dispatcher will confirm it at delivery.`;
@@ -255,7 +237,11 @@ Keep this ID safe — your dispatcher will confirm it at delivery.`;
         console.error("❌ Error sending SMS:", smsErr.message);
       }
 
-      res.json({ success: true, message: "Payment verified, order saved & SMS sent", order: newOrder });
+      res.json({
+        success: true,
+        message: "Payment verified, order saved, OneSignal + SMS sent",
+        order: newOrder,
+      });
     } else {
       res.status(400).json({ success: false, message: "Payment not successful" });
     }
