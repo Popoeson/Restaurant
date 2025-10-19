@@ -176,30 +176,35 @@ app.delete("/api/menu/:id", async (req, res) => {
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
-    const orderDetails = orderData; // keep compatibility with frontend
+    if (!reference) {
+      return res.status(400).json({ success: false, message: "Missing payment reference" });
+    }
+
     console.log("🔍 Verifying Paystack reference:", reference);
 
-    // Verify payment
-    const verifyRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
-    });
+    // Verify with Paystack
+    const verifyRes = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
+    );
 
     const paymentData = verifyRes.data.data;
+    if (!paymentData) {
+      return res.status(400).json({ success: false, message: "Invalid verification response" });
+    }
 
     if (paymentData.status === "success") {
-      // Save order
       const newOrder = new Order({
-        ...orderDetails,
+        ...orderData,
         reference,
         totalAmount: paymentData.amount / 100,
         status: "paid",
       });
 
       await newOrder.save();
+      console.log("✅ Payment verified and order saved:", newOrder.reference);
 
-      console.log("✅ Payment verified and order saved:", newOrder);
-
-      // === EMIT SOCKET EVENT ===
+      // Emit real-time order to admin via Socket.io
       io.emit("newOrder", {
         customer: newOrder.name,
         totalAmount: newOrder.totalAmount,
@@ -207,15 +212,34 @@ app.post("/api/payment/verify", async (req, res) => {
         time: newOrder.createdAt,
       });
 
-      res.json({ message: "Payment verified successfully", order: newOrder });
+      // ✅ FIXED RESPONSE FORMAT
+      return res.json({
+        success: true,
+        message: "Payment verified successfully",
+        order: newOrder,
+      });
     } else {
-      res.status(400).json({ message: "Payment verification failed" });
+      return res.status(400).json({
+        success: false,
+        message: "Payment not successful on Paystack",
+      });
     }
   } catch (err) {
     console.error("💥 Payment verification error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+
+    // Handle invalid or HTML response
+    if (err.response && err.response.data && typeof err.response.data === "string") {
+      console.log("💥 Raw response:", err.response.data.slice(0, 200));
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Error verifying payment. Please try again.",
+      error: err.message,
+    });
   }
 });
+
 
 // === GET ALL ORDERS (for admin) ===
 app.get("/api/orders", async (req, res) => {
