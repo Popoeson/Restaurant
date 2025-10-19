@@ -6,7 +6,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import axios from "axios"; // for verifying Paystack and sending Termii requests
+import axios from "axios";
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 
 dotenv.config();
 const app = express();
@@ -14,8 +16,8 @@ app.use(express.json());
 app.use(cors());
 
 // ====== OneSignal Notification Helper ======
-const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; // set in your .env
-const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY; // set in your .env
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; 
+const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY;
 
 async function sendOneSignalNotification(title, message) {
   try {
@@ -23,16 +25,14 @@ async function sendOneSignalNotification(title, message) {
       app_id: ONESIGNAL_APP_ID,
       headings: { en: title },
       contents: { en: message },
-      included_segments: ["Subscribed Users"], // All subscribed admins
+      included_segments: ["Subscribed Users"],
     };
-
     const response = await axios.post("https://onesignal.com/api/v1/notifications", payload, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Basic ${ONESIGNAL_REST_KEY}`,
       },
     });
-
     console.log("✅ OneSignal notification sent:", response.data);
   } catch (err) {
     console.error("❌ Error sending OneSignal notification:", err.message);
@@ -184,7 +184,28 @@ app.delete("/api/menu/:id", async (req, res) => {
   }
 });
 
-// ====== Verify Paystack Payment + Send SMS + OneSignal ======
+// ====== Create HTTP server & Socket.IO ======
+const server = createServer(app);
+const io = new SocketIOServer(server, {
+  cors: { origin: "*", methods: ["GET", "POST"] },
+});
+
+io.on("connection", (socket) => {
+  console.log("⚡ Admin connected via WebSocket:", socket.id);
+  socket.on("disconnect", () => console.log("⚡ Admin disconnected:", socket.id));
+});
+
+function notifyAdminsNewOrder(order) {
+  io.emit("newOrder", {
+    orderId: order.reference,
+    customer: order.name,
+    amount: order.totalAmount,
+    status: order.status,
+    createdAt: order.createdAt,
+  });
+}
+
+// ====== Verify Paystack Payment + Send SMS + OneSignal + WebSocket ======
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
@@ -196,7 +217,6 @@ app.post("/api/payment/verify", async (req, res) => {
     const data = response.data.data;
 
     if (data.status === "success") {
-      // ✅ Save order
       const newOrder = new Order({
         name: orderData.name,
         email: orderData.email,
@@ -211,12 +231,15 @@ app.post("/api/payment/verify", async (req, res) => {
 
       await newOrder.save();
 
-      // ✅ Send OneSignal notification to all subscribed admins
+      // OneSignal notification
       const notifTitle = "New Order Received!";
       const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
       sendOneSignalNotification(notifTitle, notifMessage);
 
-      // ✅ Send SMS via Termii
+      // Emit WebSocket notification
+      notifyAdminsNewOrder(newOrder);
+
+      // SMS via Termii
       const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
 Order ID: ${reference}.
 Keep this ID safe — your dispatcher will confirm it at delivery.`;
@@ -251,7 +274,7 @@ Keep this ID safe — your dispatcher will confirm it at delivery.`;
   }
 });
 
-// ====== Get All Orders (Admin use) ======
+// ====== Get All Orders ======
 app.get("/api/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -261,16 +284,11 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-// 📦 Get single order by ID
+// Get single order by reference
 app.get("/api/orders/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const order = await Order.findOne({ reference: id }); // 'reference' was your order ID in checkout
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
+    const order = await Order.findOne({ reference: req.params.id });
+    if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   } catch (err) {
     console.error("Error fetching order:", err);
@@ -278,17 +296,11 @@ app.get("/api/orders/:id", async (req, res) => {
   }
 });
 
-  // DELETE an order by ID
+// Delete an order by ID
 app.delete("/api/orders/:id", async (req, res) => {
   try {
-    const orderId = req.params.id;
-
-    const deletedOrder = await Order.findByIdAndDelete(orderId);
-
-    if (!deletedOrder) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
+    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
+    if (!deletedOrder) return res.status(404).json({ message: "Order not found" });
     res.json({ message: "Order deleted successfully", deletedOrder });
   } catch (error) {
     console.error("Error deleting order:", error);
@@ -296,35 +308,25 @@ app.delete("/api/orders/:id", async (req, res) => {
   }
 });
 
-  // Get admin stats
+// Get admin stats
 app.get("/api/admin/stats", async (req, res) => {
   try {
     const orders = await Order.find();
-
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-
     const pendingOrders = orders.filter(o => o.status === "pending").length;
     const processingOrders = orders.filter(o => o.status === "processing").length;
-
-    // Sort orders by date (most recent first)
     const recentOrders = orders
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
 
-    res.json({
-      totalOrders,
-      totalRevenue,
-      pendingOrders,
-      processingOrders,
-      recentOrders,
-    });
+    res.json({ totalOrders, totalRevenue, pendingOrders, processingOrders, recentOrders });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ====== Server Start ======
+// ====== Start Server ======
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
