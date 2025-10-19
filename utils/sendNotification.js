@@ -2,14 +2,14 @@
 async function sendNewOrderNotification(order) {
   try {
     // 🧩 Debug logs for environment variables
-    console.log("🔑 OneSignal Key Exists:", !!process.env.ONESIGNAL_API_KEY);
+    console.log("🔑 OneSignal Key Exists:", !!process.env.ONESIGNAL_REST_KEY);
     console.log("📱 OneSignal App ID Exists:", !!process.env.ONESIGNAL_APP_ID);
 
     // ✅ Correct endpoint for OneSignal notifications
     const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
-        "Authorization": `Basic ${process.env.ONESIGNAL_API_KEY}`,
+        "Authorization": `Basic ${process.env.ONESIGNAL_REST_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
