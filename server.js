@@ -219,7 +219,7 @@ app.post("/api/payment/verify", async (req, res) => {
 
     // 1️⃣ Verify payment with Paystack
     const verifyRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET}` },
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     });
 
     if (!verifyRes.data || !verifyRes.data.status) {
@@ -279,7 +279,7 @@ app.post("/api/payment/verify", async (req, res) => {
           headings: { en: "New Order Received 🍔" },
           contents: { en: `${order.name} just placed an order (₦${order.totalAmount.toLocaleString()})` },
         },
-        { headers: { Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}` } }
+        { headers: { Authorization: `Basic ${process.env.ONESIGNAL_REST_KEY}` } }
       );
       console.log("🔔 OneSignal notification sent.");
     } catch (notifErr) {
