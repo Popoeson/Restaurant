@@ -9,7 +9,7 @@ import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { sendNotification } from "./utils/sendNotification.js"; // ✅ move to top
+import sendNewOrderNotification from "./utils/sendNotification.js";
 
 
 dotenv.config();
