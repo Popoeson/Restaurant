@@ -7,7 +7,6 @@
 
 <!-- OneSignal SDK -->  
 <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>  
-  
 
 <style>  
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}  
@@ -35,6 +34,27 @@
   th {background:#ff914d;color:white;}  
   tr:nth-child(even) {background:#f9f9f9;}  
   @media(min-width:768px){.cards{flex-direction:row;flex-wrap:wrap;}.card{flex:1;min-width:180px;}}  
+
+  /* Popup for new orders */
+  #popupNotification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff7f50;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    z-index: 999;
+  }
+  #popupNotification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>  
 </head>  
 
@@ -104,6 +124,9 @@
   </section>  
 </main>  
 
+<!-- Popup Notification -->
+<div id="popupNotification">New order received!</div>
+
 <script>  
 document.addEventListener("DOMContentLoaded", () => {  
   const backendURL = "https://restaurant-eqbo.onrender.com";  
@@ -130,6 +153,13 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("orderNotifCount", newCount);
       }
 
+      function showPopup(message) {
+        const popup = document.getElementById("popupNotification");
+        popup.textContent = message;
+        popup.classList.add("show");
+        setTimeout(() => popup.classList.remove("show"), 3000);
+      }
+
       notifIcon.addEventListener("click", () => {
         notifIcon.setAttribute("data-count", 0);
         localStorage.setItem("orderNotifCount", 0);
@@ -139,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       socket.on("newOrder", (order) => {
         console.log("⚡ New order received:", order);
         incrementNotification();
+        showPopup("New order received!");
 
         const ordersCountEl = document.getElementById("ordersCount");  
         const pendingOrdersEl = document.getElementById("pendingOrders");  
@@ -216,4 +247,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>  
 </body>  
-          </html>
+  </html>
