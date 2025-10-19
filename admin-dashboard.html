@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Dashboard | TastyBite</title>
 
-<!-- OneSignal SDK (remove defer!) -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"></script>
+<!-- OneSignal SDK-->
+<!-- <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"></script> -->
+  
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
 
 <style>
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
@@ -148,39 +150,31 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   document.head.appendChild(socketScript);
 
-  // ---------- OneSignal ----------
+  //=≠====OneSignal==≠======
   window.OneSignal = window.OneSignal || [];
-  OneSignal.push(() => {
+  OneSignal.push(function() {
     OneSignal.init({
       appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+      safari_web_id: "YOUR-SAFARI-WEB-ID-IF-AVAILABLE",
+      notifyButton: {
+        enable: true,
+        size: 'medium',
+        theme: 'default',
+        position: 'bottom-right',
+        text: {
+          'tip.state.unsubscribed': 'Subscribe to notifications',
+          'tip.state.subscribed': 'You’re subscribed!',
+          'tip.state.blocked': 'You’ve blocked notifications',
+          'message.prenotify': 'Click to subscribe!',
+          'message.action.subscribed': 'Thanks for subscribing!',
+          'message.action.resubscribed': 'You’re subscribed again!',
+          'message.action.unsubscribed': 'You won’t receive notifications.',
+          'dialog.main.title': 'Manage Site Notifications',
+          'dialog.main.button.subscribe': 'SUBSCRIBE',
+          'dialog.main.button.unsubscribe': 'UNSUBSCRIBE'
+        },
+      },
       allowLocalhostAsSecureOrigin: true,
-      notifyButton: { enable: true },
-    });
-
-    // Show prompt for push notifications
-    OneSignal.showSlidedownPrompt();
-
-    // Get Player ID and send to backend
-    OneSignal.getUserId().then(playerId => {
-      if (playerId) {
-        console.log("✅ Player ID:", playerId);
-        fetch(`${backendURL}/api/admin/save-player-id`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ playerId })
-        }).then(() => console.log("📤 Player ID saved"));
-        document.getElementById("notifIcon").style.opacity = "1";
-      }
-    });
-
-    // Listen for incoming notifications
-    OneSignal.on('notificationDisplay', event => {
-      console.log("📣 Notification displayed:", event);
-      const notifIcon = document.getElementById("notifIcon");
-      notifIcon.setAttribute(
-        "data-count",
-        (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1
-      );
     });
   });
 
