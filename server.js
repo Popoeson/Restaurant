@@ -203,6 +203,15 @@ app.post("/api/payment/verify", async (req, res) => {
       await newOrder.save();
       console.log("✅ Payment verified and order saved:", newOrder.reference);
 
+      import { sendNotification } from "./utils/sendNotification.js";
+
+// After saving new order
+await sendNotification(
+  "🍔 New Order Received!",
+  `A new order has been placed for ₦${order.totalAmount.toLocaleString()}.`,
+  "https://tastybite.vercel.app/admin-dashboard.html"
+);
+
       // === Send OneSignal notification ===
       try {
         await axios.post(
