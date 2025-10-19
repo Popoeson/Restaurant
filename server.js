@@ -212,7 +212,7 @@ app.post("/api/payment/verify", async (req, res) => {
       console.log("✅ Payment verified and order saved:", newOrder.reference);
 
       // ✅ Send push notification via OneSignal
-      await sendNotification(
+      await sendNewOrderNotification(
         "🍔 New Order Received!",
         `A new order has been placed for ₦${newOrder.totalAmount.toLocaleString()}.`,
         "https://tastybite.vercel.app/admin-dashboard.html"
