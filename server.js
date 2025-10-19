@@ -41,6 +41,9 @@ cloudinary.config({
 // === Multer Setup ===
 const upload = multer({ dest: "uploads/" });
 
+// ====== PAYSTACK CONFIG ======
+const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY
+
 // ====== Menu Schema ======
 const menuSchema = new mongoose.Schema({
   name: String,
