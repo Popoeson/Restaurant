@@ -44,6 +44,10 @@ const upload = multer({ dest: "uploads/" });
 // ====== PAYSTACK CONFIG ======
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY
 
+// ====== OneSignal Notification Helper ======
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; 
+const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY;
+
 // ====== Menu Schema ======
 const menuSchema = new mongoose.Schema({
   name: String,
