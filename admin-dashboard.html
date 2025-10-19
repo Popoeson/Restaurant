@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       data.recentOrders.forEach((order) => {  
         const tr = document.createElement("tr");  
         tr.innerHTML = `
-          <td>${index + 1}.</td>
+          <td>#${index + 1}.</td>
           <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>  
           <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>  
           <td>₦${order.totalAmount.toLocaleString()}</td>  
