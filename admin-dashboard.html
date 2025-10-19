@@ -108,61 +108,61 @@ document.addEventListener("DOMContentLoaded", () => {
   const backendURL = "https://restaurant-eqbo.onrender.com";
 
   // ---------- Dynamically load Socket.IO ----------
-  const script = document.createElement("script");
-  script.src = "https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js";
-  script.onload = () => {
-    const socket = io(backendURL);
+  const socketScript = document.createElement("script");
+  socketScript.src = "https://cdn.socket.io/4.9.3/socket.io.min.js";
+  socketScript.onload = () => {
+    if (typeof io !== "undefined") {
+      const socket = io(backendURL);
 
-    socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
-    socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
-    socket.on("newOrder", order => {
-      console.log("⚡ New order received:", order);
+      socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
+      socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
 
-      const ordersCountEl = document.getElementById("ordersCount");
-      const pendingOrdersEl = document.getElementById("pendingOrders");
-      const processingOrdersEl = document.getElementById("processingOrders");
-      const revenueEl = document.getElementById("revenue");
-      const notifIcon = document.getElementById("notifIcon");
+      socket.on("newOrder", order => {
+        console.log("⚡ New order received:", order);
 
-      ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
-      pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
-      processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
-      revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
-      notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+        const ordersCountEl = document.getElementById("ordersCount");
+        const pendingOrdersEl = document.getElementById("pendingOrders");
+        const processingOrdersEl = document.getElementById("processingOrders");
+        const revenueEl = document.getElementById("revenue");
+        const notifIcon = document.getElementById("notifIcon");
 
-      const tbody = document.querySelector("#recentOrdersTable tbody");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>#${ordersCountEl.textContent}</td>
-        <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-        <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-        <td>₦${order.totalAmount.toLocaleString()}</td>
-      `;
-      tbody.prepend(tr);
-    });
+        ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+        pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+        processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+        revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
+        notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+
+        const tbody = document.querySelector("#recentOrdersTable tbody");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>#${ordersCountEl.textContent}</td>
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+          <td>₦${order.totalAmount.toLocaleString()}</td>
+        `;
+        tbody.prepend(tr);
+      });
+    } else {
+      console.error("❌ Socket.IO (io) is not loaded!");
+    }
   };
-  document.head.appendChild(script);
+  document.head.appendChild(socketScript);
 
   // ---------- OneSignal ----------
   window.OneSignal = window.OneSignal || [];
-OneSignal.push(() => {
-    OneSignal.init({
-        appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-        notifyButton: { enable: true }
-    });
-
-    // Show prompt safely
+  OneSignal.push(() => {
+    OneSignal.init({ appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", notifyButton: { enable: true } });
     try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
-
-    // Only attach event after init
-    if (OneSignal.isPushNotificationsSupported()) {
-        OneSignal.on("notificationDisplay", event => {
-            console.log("Notification displayed:", event);
-            const notifIcon = document.getElementById("notifIcon");
-            notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
-        });
+    
+    if (OneSignal.isPushNotificationsSupported && OneSignal.isPushNotificationsSupported()) {
+      OneSignal.on("notificationDisplay", event => {
+        console.log("Notification displayed:", event);
+        const notifIcon = document.getElementById("notifIcon");
+        notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+      });
     }
-});
+  });
+
   // ---------- Sidebar toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
     document.getElementById("sidebar").classList.toggle("active");
@@ -201,4 +201,4 @@ OneSignal.push(() => {
 });
 </script>
 </body>
-  </html>
+</html>
