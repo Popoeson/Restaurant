@@ -7,8 +7,8 @@
 
 <!-- OneSignal SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<!-- Socket.IO -->
-<script src="https://cdn.socket.io/4.9.3/socket.io.min.js"></script>
+<!-- Socket.IO (via jsDelivr) -->
+<script src="https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js"></script>
 
 <style>
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
@@ -116,107 +116,99 @@
 </main>
 
 <script>
-const backendURL = "https://restaurant-eqbo.onrender.com";
+document.addEventListener("DOMContentLoaded", () => {
+  const backendURL = "https://restaurant-eqbo.onrender.com";
 
-// Sidebar toggle
-document.getElementById("toggleMenu").addEventListener("click", () => {
-  document.getElementById("sidebar").classList.toggle("active");
-});
+  // ---------- WebSocket Setup ----------
+  const socket = io(backendURL); // io is now guaranteed to exist
 
-// ---------- OneSignal Setup ----------
-window.OneSignal = window.OneSignal || [];
-OneSignal.push(function() {
-  OneSignal.init({
-    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-    notifyButton: { enable: true },
+  socket.on("connect", () => {
+    console.log("✅ Connected to WebSocket server:", socket.id);
   });
 
-  try { OneSignal.showSlidedownPrompt(); } 
-  catch (err) { console.warn("Slidedown prompt failed:", err); }
+  socket.on("disconnect", () => {
+    console.warn("⚠️ Disconnected from WebSocket server");
+  });
 
-  OneSignal.on("notificationDisplay", function(event) {
-    console.log("Notification displayed:", event);
+  socket.on("newOrder", (order) => {
+    console.log("⚡ New order received via WebSocket:", order);
+
+    const ordersCountEl = document.getElementById("ordersCount");
+    const pendingOrdersEl = document.getElementById("pendingOrders");
+    const revenueEl = document.getElementById("revenue");
+    const processingOrdersEl = document.getElementById("processingOrders");
     const notifIcon = document.getElementById("notifIcon");
-    let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
-    notifIcon.setAttribute("data-count", count + 1);
-  });
-});
 
-// ---------- Load Dashboard Data ----------
-async function loadDashboardData() {
-  try {
-    const res = await fetch(`${backendURL}/api/admin/stats`);
-    const data = await res.json();
-
-    document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
-    document.getElementById("ordersCount").textContent = data.totalOrders;
-    document.getElementById("pendingOrders").textContent = data.pendingOrders;
-    document.getElementById("processingOrders").textContent = data.processingOrders;
+    ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+    pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+    processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+    revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
+    notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
 
     const tbody = document.querySelector("#recentOrdersTable tbody");
-    tbody.innerHTML = "";
-    data.recentOrders.forEach((order, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>#${index + 1}</td>
-        <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-        <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-        <td>₦${order.totalAmount.toLocaleString()}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("Failed to fetch dashboard data:", err);
-  }
-}
-
-loadDashboardData();
-
-// ---------- WebSocket Setup ----------
-const socket = io(backendURL);
-
-// Listen for new orders
-socket.on("newOrder", (order) => {
-  console.log("⚡ New order received via WebSocket:", order);
-
-  // Update dashboard stats
-  const ordersCountEl = document.getElementById("ordersCount");
-  const pendingOrdersEl = document.getElementById("pendingOrders");
-  const revenueEl = document.getElementById("revenue");
-  const processingOrdersEl = document.getElementById("processingOrders");
-
-  ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
-  pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
-  processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
-  revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
-
-  // Update bell count
-  const notifIcon = document.getElementById("notifIcon");
-  let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
-  notifIcon.setAttribute("data-count", count + 1);
-
-  // Prepend new order to table
-  const tbody = document.querySelector("#recentOrdersTable tbody");
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td>#${parseInt(ordersCountEl.textContent)}</td>
-    <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-    <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-    <td>₦${order.totalAmount.toLocaleString()}</td>
-  `;
-  tbody.prepend(tr);
-
-  // OneSignal self-notification
-  OneSignal.push(() => {
-    OneSignal.sendSelfNotification(
-      "New Order Received!",
-      `Order ID: ${order.reference}, Amount: ₦${order.totalAmount.toLocaleString()}`,
-      `${window.location.href}`,
-      {},
-      { notificationType: "new_order" }
-    );
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>#${parseInt(ordersCountEl.textContent)}</td>
+      <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+      <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+      <td>₦${order.totalAmount.toLocaleString()}</td>
+    `;
+    tbody.prepend(tr);
   });
+
+  // ---------- OneSignal Setup ----------
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+      notifyButton: { enable: true },
+    });
+
+    try { OneSignal.showSlidedownPrompt(); } 
+    catch (err) { console.warn("Slidedown prompt failed:", err); }
+
+    OneSignal.on("notificationDisplay", function(event) {
+      console.log("Notification displayed:", event);
+      const notifIcon = document.getElementById("notifIcon");
+      notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+    });
+  });
+
+  // ---------- Sidebar toggle ----------
+  document.getElementById("toggleMenu").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("active");
+  });
+
+  // ---------- Load Dashboard Data ----------
+  async function loadDashboardData() {
+    try {
+      const res = await fetch(`${backendURL}/api/admin/stats`);
+      const data = await res.json();
+
+      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
+      document.getElementById("ordersCount").textContent = data.totalOrders;
+      document.getElementById("pendingOrders").textContent = data.pendingOrders;
+      document.getElementById("processingOrders").textContent = data.processingOrders;
+
+      const tbody = document.querySelector("#recentOrdersTable tbody");
+      tbody.innerHTML = "";
+      data.recentOrders.forEach((order, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>#${index + 1}</td>
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+          <td>₦${order.totalAmount.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+    }
+  }
+
+  loadDashboardData();
 });
 </script>
 </body>
-  </html>
+        </html>
