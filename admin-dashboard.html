@@ -148,35 +148,37 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   document.head.appendChild(socketScript);
 
-  //=≠====OneSignal==≠======
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-      safari_web_id: "YOUR-SAFARI-WEB-ID-IF-AVAILABLE",
-      notifyButton: {
-        enable: true,
-        size: 'medium',
-        theme: 'default',
-        position: 'bottom-right',
-        text: {
-          'tip.state.unsubscribed': 'Subscribe to notifications',
-          'tip.state.subscribed': 'You’re subscribed!',
-          'tip.state.blocked': 'You’ve blocked notifications',
-          'message.prenotify': 'Click to subscribe!',
-          'message.action.subscribed': 'Thanks for subscribing!',
-          'message.action.resubscribed': 'You’re subscribed again!',
-          'message.action.unsubscribed': 'You won’t receive notifications.',
-          'dialog.main.title': 'Manage Site Notifications',
-          'dialog.main.button.subscribe': 'SUBSCRIBE',
-          'dialog.main.button.unsubscribe': 'UNSUBSCRIBE'
-        },
+  //=≠==== OneSignal Integration ==≠======
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+  OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+    safari_web_id: "YOUR-SAFARI-WEB-ID-IF-AVAILABLE",
+    notifyButton: {
+      enable: true,
+      size: 'medium',
+      theme: 'default',
+      position: 'bottom-right',
+      text: {
+        'tip.state.unsubscribed': 'Subscribe to notifications',
+        'tip.state.subscribed': 'You’re subscribed!',
+        'tip.state.blocked': 'You’ve blocked notifications',
+        'message.prenotify': 'Click to subscribe!',
+        'message.action.subscribed': 'Thanks for subscribing!',
+        'message.action.resubscribed': 'You’re subscribed again!',
+        'message.action.unsubscribed': 'You won’t receive notifications.',
+        'dialog.main.title': 'Manage Site Notifications',
+        'dialog.main.button.subscribe': 'SUBSCRIBE',
+        'dialog.main.button.unsubscribe': 'UNSUBSCRIBE'
       },
-      allowLocalhostAsSecureOrigin: true,
-      OneSignal.setDefaultNotificationUrl("https://tastybite.vercel.app/admin-dashboard.html");
-    });
+    },
+    allowLocalhostAsSecureOrigin: true,
   });
 
+  // 👇 Set default redirect URL for notifications AFTER initialization
+  OneSignal.setDefaultNotificationUrl("https://tastybite.vercel.app/admin-dashboard.html");
+});
+  
   // ---------- Sidebar toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
     document.getElementById("sidebar").classList.toggle("active");
