@@ -5,371 +5,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TastyBite | Delicious Food at Your Doorstep</title>
   <style>
-    /* ---------- GLOBAL STYLES ---------- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
+    * {margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+    body{background:#fff;color:#333;overflow-x:hidden;}
+    a{text-decoration:none;color:inherit;}
 
-    body {
-      background-color: #fff;
-      color: #333;
-      overflow-x: hidden;
-    }
+    header{width:100%;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:15px 5%;box-shadow:0 2px 8px rgba(0,0,0,0.05);position:sticky;top:0;z-index:100;}
+    .logo{font-size:1.5rem;font-weight:700;color:#ff6600;}
+    .nav-right{display:flex;align-items:center;gap:15px;}
+    .cart-icon{font-size:1.4rem;cursor:pointer;color:#ff6600;position:relative;}
+    .cart-count{position:absolute;top:-6px;right:-10px;background:#ff5500;color:white;border-radius:50%;font-size:0.7rem;width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
 
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
+    .hero{position:relative;width:100%;height:65vh;background:url('https://images.unsplash.com/photo-1600891963937-580b0a7f7f6f?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat;display:flex;align-items:center;justify-content:center;}
+    .hero-overlay{position:absolute;width:100%;height:100%;background:linear-gradient(to right, rgba(255,136,0,0.8), rgba(255,85,0,0.7));}
+    .hero-content{position:relative;color:white;text-align:center;z-index:2;max-width:600px;padding:0 20px;}
+    .hero-content h1{font-size:2.2rem;margin-bottom:10px;}
+    .hero-content p{font-size:1rem;margin-bottom:20px;}
+    .hero-buttons{display:flex;justify-content:center;gap:15px;}
+    .hero-buttons button{background:white;color:#ff6600;border:none;padding:10px 20px;border-radius:25px;font-weight:600;cursor:pointer;transition:all 0.3s;}
+    .hero-buttons button:hover{background:#ff6600;color:#fff;}
 
-    /* ---------- HEADER ---------- */
-    header {
-      width: 100%;
-      background: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 5%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
+    .menu-section{padding:50px 5%;}
+    .menu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;}
+    .menu-header h2{color:#ff5500;font-size:1.8rem;}
+    .category-filter{display:flex;gap:10px;flex-wrap:wrap;}
+    .category-filter button{background:linear-gradient(45deg, #ff8800, #ff5500);border:none;color:white;padding:6px 14px;border-radius:20px;font-size:0.9rem;cursor:pointer;transition:all 0.3s;}
+    .category-filter button:hover{background:#ff5500;}
 
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #ff6600;
-    }
+    .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:25px;}
+    .menu-card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.05);transition:transform 0.3s ease;}
+    .menu-card:hover{transform:translateY(-5px);}
+    .menu-card img{width:100%;height:160px;object-fit:cover;}
+    .menu-info{padding:15px;}
+    .menu-info h3{font-size:1rem;display:flex;justify-content:space-between;align-items:center;color:#333;}
+    .menu-info h3 span{color:#ff6600;font-weight:600;}
+    .menu-info p{font-size:0.85rem;color:#666;margin:5px 0 10px;}
+    .menu-info button{background:linear-gradient(45deg, #ff8800, #ff5500);color:#fff;border:none;padding:8px 15px;border-radius:20px;cursor:pointer;transition:all 0.3s;}
+    .menu-info button:hover{transform:scale(1.05);}
 
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
+    #toastContainer{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+    .toast{background:rgba(0,0,0,0.85);color:#fff;padding:12px 20px;border-radius:8px;font-weight:600;opacity:0;transform:translateY(20px);animation:slideIn 0.3s forwards;pointer-events:all;}
+    @keyframes slideIn{to{opacity:1;transform:translateY(0);}}
+    @keyframes slideOut{to{opacity:0;transform:translateY(20px);}}
 
-    .nav-right button {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      border: none;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .nav-right button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 3px 10px rgba(255, 102, 0, 0.4);
-    }
-
-    .cart-icon {
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #ff6600;
-      position: relative;
-    }
-
-    .cart-count {
-      position: absolute;
-      top: -6px;
-      right: -10px;
-      background: #ff5500;
-      color: white;
-      border-radius: 50%;
-      font-size: 0.7rem;
-      width: 16px;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* ---------- HERO SECTION ---------- */
-    .hero {
-      position: relative;
-      width: 100%;
-      height: 65vh;
-      background: url('https://images.unsplash.com/photo-1600891963937-580b0a7f7f6f?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hero-overlay {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to right, rgba(255, 136, 0, 0.8), rgba(255, 85, 0, 0.7));
-    }
-
-    .hero-content {
-      position: relative;
-      color: white;
-      text-align: center;
-      z-index: 2;
-      max-width: 600px;
-      padding: 0 20px;
-    }
-
-    .hero-content h1 {
-      font-size: 2.2rem;
-      margin-bottom: 10px;
-    }
-
-    .hero-content p {
-      font-size: 1rem;
-      margin-bottom: 20px;
-    }
-
-    .hero-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    .hero-buttons button {
-      background: white;
-      color: #ff6600;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .hero-buttons button:hover {
-      background: #ff6600;
-      color: #fff;
-    }
-
-    /* ---------- MENU SECTION ---------- */
-    .menu-section {
-      padding: 50px 5%;
-    }
-
-    .menu-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-    }
-
-    .menu-header h2 {
-      color: #ff5500;
-      font-size: 1.8rem;
-    }
-
-    .category-filter {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .category-filter button {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      border: none;
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .category-filter button:hover {
-      background: #ff5500;
-    }
-
-    /* ---------- MENU GRID ---------- */
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 25px;
-    }
-
-    .menu-card {
-      background: #fff;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      transition: transform 0.3s ease;
-    }
-
-    .menu-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .menu-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-
-    .menu-info {
-      padding: 15px;
-    }
-
-    .menu-info h3 {
-      font-size: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #333;
-    }
-
-    .menu-info h3 span {
-      color: #ff6600;
-      font-weight: 600;
-    }
-
-    .menu-info p {
-      font-size: 0.85rem;
-      color: #666;
-      margin: 5px 0 10px;
-    }
-
-    .menu-info button {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      color: #fff;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .menu-info button:hover {
-      transform: scale(1.05);
-    }
-
-    /* ---------- FOOTER ---------- */
-    footer {
-      margin-top: 50px;
-      text-align: center;
-      padding: 20px;
-      background: #fff3e6;
-      color: #333;
-      font-size: 0.9rem;
-    }
-
-    /* ---------- RESPONSIVE ---------- */
-    @media (max-width: 768px) {
-      .hero-content h1 {
-        font-size: 1.8rem;
-      }
-      .hero {
-        height: 55vh;
-      }
-    }
+    footer{margin-top:50px;text-align:center;padding:20px;background:#fff3e6;color:#333;font-size:0.9rem;}
+    @media(max-width:768px){.hero-content h1{font-size:1.8rem;}.hero{height:55vh;}}
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">TastyBite</div>
-    <div class="nav-right">
-      <div class="cart-icon" onclick="window.location.href='cart.html'">🛒<span class="cart-count">0</span></div>
-      <button onclick="location.href='login.html'">Login</button>
-      <button onclick="location.href='register.html'">Register</button>
+<header>
+  <div class="logo">TastyBite</div>
+  <div class="nav-right">
+    <div class="cart-icon" onclick="window.location.href='cart.html'">🛒<span class="cart-count">0</span></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Delicious Food, Right at Your Doorstep</h1>
+    <p>Freshly made meals delivered hot and fast — satisfaction guaranteed!</p>
+    <div class="hero-buttons">
+      <button onclick="location.href='menu.html'">View Menu</button>
     </div>
-  </header>
+  </div>
+</section>
 
-  <!-- HERO SECTION -->
-  <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Delicious Food, Right at Your Doorstep</h1>
-      <p>Freshly made meals delivered hot and fast — satisfaction guaranteed!</p>
-      <div class="hero-buttons">
-        <button onclick="location.href='menu.html'">View Menu</button>
-        <button onclick="location.href='register.html'">Sign Up</button>
-      </div>
+<section class="menu-section">
+  <div class="menu-header">
+    <h2 id="menuTitle">MENU</h2>
+    <div class="category-filter">
+      <button onclick="filterMenu('All')">All</button>
+      <button onclick="filterMenu('Food')">Food</button>
+      <button onclick="filterMenu('Snacks')">Snacks</button>
+      <button onclick="filterMenu('Extras')">Extras</button>
+      <button onclick="filterMenu('Soup')">Soup</button>
+      <button onclick="filterMenu('Drinks')">Drinks</button>
+      <button onclick="filterMenu('Shawarma')">Shawarma</button>
+      <button onclick="filterMenu('Asun')">Asun</button>
     </div>
-  </section>
+  </div>
+  <div class="menu-grid" id="menuGrid">
+    <p>Loading menu...</p>
+  </div>
+</section>
 
-  <!-- MENU SECTION -->
-  <section class="menu-section">
-    <div class="menu-header">
-      <h2>MENU</h2>
-      <div class="category-filter">
-        <button>All</button>
-        <button>Food</button>
-        <button>Snacks</button>
-        <button>Extras</button>
-        <button>Drinks</button>
-        <button>Shawarma</button>
-        <button>Asun</button>
-      </div>
-    </div>
+<footer>
+  © 2025 TastyBite Restaurant. All rights reserved.
+</footer>
 
-    <div class="menu-grid" id="menuGrid">
-      <!-- Example food cards -->
-      <div class="menu-card">
-        <img src="https://images.unsplash.com/photo-1604909052743-94e9f0a9b3b8?auto=format&fit=crop&w=800&q=60" alt="Jollof Rice" />
-        <div class="menu-info">
-          <h3>Jollof Rice <span>₦500/per portion</span></h3>
-          <p>Tasty Nigerian jollof served with fried plantain.</p>
-          <button>Add to Cart</button>
-        </div>
-      </div>
+<div id="toastContainer"></div>
 
-      <div class="menu-card">
-        <img src="https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=60" alt="Shawarma" />
-        <div class="menu-info">
-          <h3>Chicken Shawarma <span>₦1500</span></h3>
-          <p>Juicy shawarma wrap with creamy garlic sauce.</p>
-          <button>Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="menu-card">
-        <img src="https://images.unsplash.com/photo-1627308595190-186e228d0977?auto=format&fit=crop&w=800&q=60" alt="Asun" />
-        <div class="menu-info">
-          <h3>Spicy Asun <span>₦1200</span></h3>
-          <p>Grilled goat meat seasoned with hot pepper mix.</p>
-          <button>Add to Cart</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    © 2025 TastyBite Restaurant. All rights reserved.
-  </footer>
-
- <script>
-  const BASE_URL = "https://restaurant-eqbo.onrender.com/api/menu"; // ✅ Your backend endpoint
+<script>
+  const BASE_URL = "https://restaurant-eqbo.onrender.com/api/menu";
   const menuGrid = document.getElementById("menuGrid");
   const cartCount = document.querySelector(".cart-count");
+  const menuTitle = document.getElementById("menuTitle");
+  const toastContainer = document.getElementById("toastContainer");
 
   let allMenu = [];
-  let cartItems = 0;
+  let tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || { "Pack 1": [] };
+  let activePack = localStorage.getItem("activePack") || "Pack 1";
+  localStorage.setItem("activePack", activePack);
+  menuTitle.textContent = `MENU (${activePack})`;
 
-  // ✅ Fetch all menu items from backend
+  // ---------- Toast ----------
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "slideOut 0.3s forwards";
+      toast.addEventListener("animationend", () => toast.remove());
+    }, 2000);
+  }
+
+  // ---------- Update cart count ----------
+  function updateCartCount() {
+    let totalCount = 0;
+    Object.values(tastyPacks).forEach(pack => {
+      pack.forEach(item => totalCount += item.qty);
+    });
+    cartCount.textContent = totalCount;
+  }
+
+  // ---------- Fetch menu ----------
   async function fetchMenu() {
     try {
       const res = await fetch(BASE_URL);
       const data = await res.json();
-      allMenu = data;
-      displayMenu(data);
+      // Sort featured items first
+      allMenu = data.sort((a, b) => (b.featured === true) - (a.featured === true));
+      displayMenu(allMenu);
     } catch (err) {
       console.error("Error fetching menu:", err);
       menuGrid.innerHTML = `<p style="color:red;">Failed to load menu. Please refresh.</p>`;
     }
   }
 
-  // ✅ Display menu items
+  // ---------- Display menu ----------
   function displayMenu(menuItems) {
     menuGrid.innerHTML = "";
-    if (menuItems.length === 0) {
+    if (!menuItems.length) {
       menuGrid.innerHTML = `<p>No menu items available yet.</p>`;
       return;
     }
@@ -377,40 +156,46 @@
     menuItems.forEach(item => {
       const card = document.createElement("div");
       card.className = "menu-card";
+      card.dataset.category = item.category || "Food";
       card.innerHTML = `
         <img src="${item.imageUrl || 'https://via.placeholder.com/400x250'}" alt="${item.name}">
         <div class="menu-info">
           <h3>${item.name} <span>₦${item.price}</span></h3>
           <p>${item.description || ''}</p>
-          <button onclick="addToCart('${item.name}')">Add to Cart</button>
+          <button onclick="addToCart('${item.name}', ${item.price}, this)">Add to Cart</button>
         </div>
       `;
       menuGrid.appendChild(card);
     });
   }
 
-  // ✅ Filter by category
-  document.querySelectorAll(".category-filter button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const category = btn.textContent.trim();
-      if (category === "All") {
-        displayMenu(allMenu);
-      } else {
-        const filtered = allMenu.filter(item => item.category === category);
-        displayMenu(filtered);
-      }
-    });
-  });
-
-  // ✅ Add to cart simulation
-  function addToCart(name) {
-    cartItems++;
-    cartCount.textContent = cartItems;
-    alert(`${name} added to cart!`);
+  // ---------- Add to cart ----------
+  function addToCart(name, price, btn) {
+    const img = btn.closest('.menu-card').querySelector('img').src;
+    if (!tastyPacks[activePack]) tastyPacks[activePack] = [];
+    const existing = tastyPacks[activePack].find(i => i.name === name);
+    if (existing) existing.qty++;
+    else tastyPacks[activePack].push({ name, price, img, qty: 1 });
+    localStorage.setItem("tastyPacks", JSON.stringify(tastyPacks));
+    updateCartCount();
+    showToast(`${name} added to ${activePack}!`);
   }
 
-  // ✅ Initialize
+  // ---------- Filter ----------
+  function filterMenu(category) {
+    let filtered = category === "All" ? allMenu : allMenu.filter(item => {
+      const itemCategory = item.category ? String(item.category).toLowerCase() : '';
+      return itemCategory === category.toLowerCase();
+    });
+    // Always sort featured first
+    filtered = filtered.sort((a, b) => (b.featured === true) - (a.featured === true));
+    displayMenu(filtered);
+  }
+
+  // ---------- Initialize ----------
   fetchMenu();
+  updateCartCount();
 </script>
+
 </body>
-                                 </html>
+        </html>
