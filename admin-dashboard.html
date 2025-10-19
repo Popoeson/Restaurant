@@ -145,16 +145,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- OneSignal ----------
   window.OneSignal = window.OneSignal || [];
-  OneSignal.push(() => {
-    OneSignal.init({ appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", notifyButton: { enable: true } });
-    try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
-    OneSignal.on("notificationDisplay", event => {
-      console.log("Notification displayed:", event);
-      const notifIcon = document.getElementById("notifIcon");
-      notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+OneSignal.push(() => {
+    OneSignal.init({
+        appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+        notifyButton: { enable: true }
     });
-  });
 
+    // Show prompt safely
+    try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
+
+    // Only attach event after init
+    if (OneSignal.isPushNotificationsSupported()) {
+        OneSignal.on("notificationDisplay", event => {
+            console.log("Notification displayed:", event);
+            const notifIcon = document.getElementById("notifIcon");
+            notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+        });
+    }
+});
   // ---------- Sidebar toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
     document.getElementById("sidebar").classList.toggle("active");
