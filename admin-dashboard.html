@@ -8,7 +8,7 @@
 <!-- OneSignal SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <!-- Socket.IO -->
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-FVL7NYsVgM4OSxK9kIWpL8q8k0FAH+zFG6oR8Zd6Jw+T2H3p0j5FqGZCUEXc5eR1" crossorigin="anonymous"></script>
+<script src="https://cdn.socket.io/4.9.3/socket.io.min.js"></script>
 
 <style>
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
@@ -125,13 +125,13 @@ document.getElementById("toggleMenu").addEventListener("click", () => {
 
 // ---------- OneSignal Setup ----------
 window.OneSignal = window.OneSignal || [];
-OneSignal.push(async function() {
-  await OneSignal.init({
+OneSignal.push(function() {
+  OneSignal.init({
     appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
     notifyButton: { enable: true },
   });
 
-  try { await OneSignal.showSlidedownPrompt(); } 
+  try { OneSignal.showSlidedownPrompt(); } 
   catch (err) { console.warn("Slidedown prompt failed:", err); }
 
   OneSignal.on("notificationDisplay", function(event) {
@@ -188,7 +188,7 @@ socket.on("newOrder", (order) => {
   ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
   pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
   processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
-  revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.amount).toLocaleString()}`;
+  revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
 
   // Update bell count
   const notifIcon = document.getElementById("notifIcon");
@@ -202,15 +202,15 @@ socket.on("newOrder", (order) => {
     <td>#${parseInt(ordersCountEl.textContent)}</td>
     <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
     <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-    <td>₦${order.amount.toLocaleString()}</td>
+    <td>₦${order.totalAmount.toLocaleString()}</td>
   `;
   tbody.prepend(tr);
 
-  // Optional: OneSignal self-notification
+  // OneSignal self-notification
   OneSignal.push(() => {
     OneSignal.sendSelfNotification(
       "New Order Received!",
-      `Order ID: ${order.orderId}, Amount: ₦${order.amount.toLocaleString()}`,
+      `Order ID: ${order.reference}, Amount: ₦${order.totalAmount.toLocaleString()}`,
       `${window.location.href}`,
       {},
       { notificationType: "new_order" }
