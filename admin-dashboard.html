@@ -165,9 +165,12 @@ document.addEventListener("DOMContentLoaded", () => {
     OneSignal.showSlidedownPrompt();
 
     // Check if push notifications are enabled
-    OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
-      console.log("Push notifications enabled:", isEnabled);
-    });
+    OneSignal.getSubscriptionState().then(state => {
+  console.log("Subscribed?", state.subscribed);
+   });
+ //   OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
+     // console.log("Push notifications enabled:", isEnabled);
+ //   });
 
     // Listen for subscription changes (when user allows notifications)
     OneSignal.on("subscriptionChange", (isSubscribed) => {
