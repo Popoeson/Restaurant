@@ -9,6 +9,8 @@ import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { sendNotification } from "./utils/sendNotification.js"; // ✅ move to top
+
 
 dotenv.config();
 
@@ -173,6 +175,7 @@ app.delete("/api/menu/:id", async (req, res) => {
 // ===============================
 // ===== PAYMENT VERIFICATION =====
 // ===============================
+
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
@@ -184,7 +187,11 @@ app.post("/api/payment/verify", async (req, res) => {
 
     const verifyRes = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
-      { headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      }
     );
 
     const paymentData = verifyRes.data.data;
@@ -193,6 +200,7 @@ app.post("/api/payment/verify", async (req, res) => {
     }
 
     if (paymentData.status === "success") {
+      // ✅ Save new order
       const newOrder = new Order({
         ...orderData,
         reference,
@@ -203,44 +211,20 @@ app.post("/api/payment/verify", async (req, res) => {
       await newOrder.save();
       console.log("✅ Payment verified and order saved:", newOrder.reference);
 
-      import { sendNotification } from "./utils/sendNotification.js";
+      // ✅ Send push notification via OneSignal
+      await sendNotification(
+        "🍔 New Order Received!",
+        `A new order has been placed for ₦${newOrder.totalAmount.toLocaleString()}.`,
+        "https://tastybite.vercel.app/admin-dashboard.html"
+      );
 
-// After saving new order
-await sendNotification(
-  "🍔 New Order Received!",
-  `A new order has been placed for ₦${order.totalAmount.toLocaleString()}.`,
-  "https://tastybite.vercel.app/admin-dashboard.html"
-);
-
-      // === Send OneSignal notification ===
-      try {
-        await axios.post(
-          "https://onesignal.com/api/v1/notifications",
-          {
-            app_id: ONESIGNAL_APP_ID,
-            headings: { en: "🍴 New Order Received!" },
-            contents: { en: `Order from ${newOrder.name} — ₦${newOrder.totalAmount.toLocaleString()}` },
-            included_segments: ["All"],
-            url: "https://tastybite.vercel.app/admin-dashboard.html",
-          },
-          {
-            headers: {
-              Authorization: `Basic ${ONESIGNAL_REST_KEY}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        console.log("📢 OneSignal notification sent");
-      } catch (err) {
-        console.error("❌ OneSignal notification failed:", err.message);
-      }
-
-      // === Emit real-time order event ===
+      // ✅ Emit real-time update via Socket.io
       io.emit("newOrder", {
         customer: newOrder.name,
         totalAmount: newOrder.totalAmount,
         reference: newOrder.reference,
-        time: newOrder.createdAt,
+        createdAt: newOrder.createdAt,
+        status: newOrder.status,
       });
 
       return res.json({
@@ -264,6 +248,7 @@ await sendNotification(
   }
 });
 
+      
 // =======================
 // ===== ORDER ROUTES =====
 // =======================
