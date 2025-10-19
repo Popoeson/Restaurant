@@ -358,6 +358,20 @@ app.get("/api/admin/stats", async (req, res) => {
   }
 });
 
+//======= Save Admin Player ID======
+app.post("/api/admin/save-player-id", async (req, res) => {
+  try {
+    const { playerId } = req.body;
+    const adminId = "YOUR_ADMIN_ID_HERE"; // Or get from session/auth
+
+    await Admin.findByIdAndUpdate(adminId, { oneSignalPlayerId: playerId }, { new: true });
+    res.json({ success: true, message: "Player ID saved" });
+  } catch (err) {
+    console.error("❌ Error saving player ID:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ====== Start Server ======
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
