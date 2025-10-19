@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- Socket.IO ----------
   const socketScript = document.createElement("script");
-  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js";
+  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.8.1/dist/socket.io.min.js";
   socketScript.onload = () => {
     if (typeof io !== "undefined") {
       const socket = io(backendURL, { transports: ["websocket"] });
