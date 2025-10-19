@@ -1,259 +1,218 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Dashboard | TastyBite</title>
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8" />  
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+<title>Admin Dashboard | TastyBite</title>  
 
-<!-- OneSignal SDK-->
-<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+<!-- OneSignal SDK -->  
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>  
 
-<style>
-  body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
-  header {display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,#ff7f50,#ff914d);color:white;padding:12px 16px;position:sticky;top:0;z-index:10;}
-  .menu-toggle {font-size:22px;cursor:pointer;}
-  .brand {font-weight:600;font-size:18px;}
-  .brand span {background:white;color:#ff7f50;font-size:12px;padding:2px 6px;border-radius:6px;margin-left:4px;}
-  .notification {position:relative;font-size:22px;cursor:pointer;opacity:0.5;}
-  .notification::after {content:attr(data-count);position:absolute;top:-5px;right:-8px;background:white;color:#ff7f50;font-size:12px;border-radius:50%;padding:2px 5px;}
-  .sidebar {position:fixed;top:0;left:-250px;width:220px;height:100%;background:#1f2937;color:white;padding:70px 20px;transition:left 0.3s ease;z-index:9;}
-  .sidebar.active {left:0;}
-  .sidebar a {display:block;color:white;text-decoration:none;padding:10px 0;font-size:15px;}
-  .sidebar a:hover {color:#ff914d;}
-  main {padding:16px;margin-top:10px;}
-  h2 {margin-bottom:4px;font-size:20px;}
-  p.subtitle {color:gray;font-size:14px;margin-bottom:16px;}
-  .cards {display:flex;flex-direction:column;gap:14px;}
-  .card {background:white;border-radius:12px;padding:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;}
-  .card-icon {font-size:24px;}
-  .card h3 {margin:0;font-size:16px;color:#555;}
-  .card .value {font-weight:bold;font-size:18px;color:#111;}
-  section {margin-top:24px;}
-  table {width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,0.1);}
-  th,td {padding:10px;font-size:14px;text-align:left;}
-  th {background:#ff914d;color:white;}
-  tr:nth-child(even) {background:#f9f9f9;}
-  @media(min-width:768px){.cards{flex-direction:row;flex-wrap:wrap;}.card{flex:1;min-width:180px;}}
-</style>
-</head>
+<style>  
+  body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}  
+  header {display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,#ff7f50,#ff914d);color:white;padding:12px 16px;position:sticky;top:0;z-index:10;}  
+  .menu-toggle {font-size:22px;cursor:pointer;}  
+  .brand {font-weight:600;font-size:18px;}  
+  .brand span {background:white;color:#ff7f50;font-size:12px;padding:2px 6px;border-radius:6px;margin-left:4px;}  
+  .notification {position:relative;font-size:22px;cursor:pointer;opacity:0.8;}  
+  .notification::after {content:attr(data-count);position:absolute;top:-5px;right:-8px;background:white;color:#ff7f50;font-size:12px;border-radius:50%;padding:2px 5px;}  
+  .sidebar {position:fixed;top:0;left:-250px;width:220px;height:100%;background:#1f2937;color:white;padding:70px 20px;transition:left 0.3s ease;z-index:9;}  
+  .sidebar.active {left:0;}  
+  .sidebar a {display:block;color:white;text-decoration:none;padding:10px 0;font-size:15px;}  
+  .sidebar a:hover {color:#ff914d;}  
+  main {padding:16px;margin-top:10px;}  
+  h2 {margin-bottom:4px;font-size:20px;}  
+  p.subtitle {color:gray;font-size:14px;margin-bottom:16px;}  
+  .cards {display:flex;flex-direction:column;gap:14px;}  
+  .card {background:white;border-radius:12px;padding:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;}  
+  .card-icon {font-size:24px;}  
+  .card h3 {margin:0;font-size:16px;color:#555;}  
+  .card .value {font-weight:bold;font-size:18px;color:#111;}  
+  section {margin-top:24px;}  
+  table {width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,0.1);}  
+  th,td {padding:10px;font-size:14px;text-align:left;}  
+  th {background:#ff914d;color:white;}  
+  tr:nth-child(even) {background:#f9f9f9;}  
+  @media(min-width:768px){.cards{flex-direction:row;flex-wrap:wrap;}.card{flex:1;min-width:180px;}}  
+</style>  
+</head>  
 
-<body>
-<header>
-  <div class="menu-toggle" id="toggleMenu">☰</div>
-  <div class="brand">TastyBite <span>Admin</span></div>
-  <div class="notification" id="notifIcon" data-count="0">🔔</div>
-</header>
+<body>  
+<header>  
+  <div class="menu-toggle" id="toggleMenu">☰</div>  
+  <div class="brand">TastyBite <span>Admin</span></div>  
+  <div class="notification" id="notifIcon" data-count="0">🔔</div>  
+</header>  
 
-<div class="sidebar" id="sidebar">
-  <a href="#">Dashboard</a>
-  <a href="orders.html">Orders</a>
-  <a href="admin-menu.html">Menu Management</a>
-  <a href="#">Customers</a>
-  <a href="#">Logout</a>
-</div>
+<div class="sidebar" id="sidebar">  
+  <a href="#">Dashboard</a>  
+  <a href="orders.html">Orders</a>  
+  <a href="admin-menu.html">Menu Management</a>  
+  <a href="#">Customers</a>  
+  <a href="#">Logout</a>  
+</div>  
 
-<main>
-  <h2>Dashboard</h2>
-  <p class="subtitle">Welcome to your admin dashboard</p>
+<main>  
+  <h2>Dashboard</h2>  
+  <p class="subtitle">Welcome to your admin dashboard</p>  
 
-  <div class="cards">
-    <div class="card">
-      <div>
-        <h3>Total Revenue</h3>
-        <div class="value" id="revenue">₦0</div>
-      </div>
-      <div class="card-icon">💰</div>
-    </div>
-    <div class="card">
-      <div>
-        <h3>Total Orders</h3>
-        <div class="value" id="ordersCount">0</div>
-      </div>
-      <div class="card-icon">🛍️</div>
-    </div>
-    <div class="card">
-      <div>
-        <h3>Pending Orders</h3>
-        <div class="value" id="pendingOrders">0</div>
-      </div>
-      <div class="card-icon">⏳</div>
-    </div>
-    <div class="card">
-      <div>
-        <h3>Processing Orders</h3>
-        <div class="value" id="processingOrders">0</div>
-      </div>
-      <div class="card-icon">👨‍🍳</div>
-    </div>
-  </div>
+  <div class="cards">  
+    <div class="card">  
+      <div>  
+        <h3>Total Revenue</h3>  
+        <div class="value" id="revenue">₦0</div>  
+      </div>  
+      <div class="card-icon">💰</div>  
+    </div>  
+    <div class="card">  
+      <div>  
+        <h3>Total Orders</h3>  
+        <div class="value" id="ordersCount">0</div>  
+      </div>  
+      <div class="card-icon">🛍️</div>  
+    </div>  
+    <div class="card">  
+      <div>  
+        <h3>Pending Orders</h3>  
+        <div class="value" id="pendingOrders">0</div>  
+      </div>  
+      <div class="card-icon">⏳</div>  
+    </div>  
+    <div class="card">  
+      <div>  
+        <h3>Processing Orders</h3>  
+        <div class="value" id="processingOrders">0</div>  
+      </div>  
+      <div class="card-icon">👨‍🍳</div>  
+    </div>  
+  </div>  
 
-  <section>
-    <h3>Recent Orders</h3>
-    <table id="recentOrdersTable">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-</main>
+  <section>  
+    <h3>Recent Orders</h3>  
+    <table id="recentOrdersTable">  
+      <thead>  
+        <tr>  
+          <th>Order ID</th>  
+          <th>Date</th>  
+          <th>Status</th>  
+          <th>Amount</th>  
+        </tr>  
+      </thead>  
+      <tbody></tbody>  
+    </table>  
+  </section>  
+</main>  
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const backendURL = "https://restaurant-eqbo.onrender.com";
+<script>  
+document.addEventListener("DOMContentLoaded", () => {  
+  const backendURL = "https://restaurant-eqbo.onrender.com";  
 
-  // ---------- Socket.IO ----------
-  const socketScript = document.createElement("script");
-  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.8.1/dist/socket.io.min.js";
-  socketScript.onload = () => {
-    if (typeof io !== "undefined") {
-      const socket = io(backendURL, { transports: ["websocket"] });
+  // ----------- SOCKET.IO ----------
+  const socketScript = document.createElement("script");  
+  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.8.1/dist/socket.io.min.js";  
+  socketScript.onload = () => {  
+    if (typeof io !== "undefined") {  
+      const socket = io(backendURL, { transports: ["websocket"] });  
 
-      socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
-      socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
+      socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));  
+      socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));  
 
-      socket.on("newOrder", order => {
+      // -------- Notification Bell Logic --------
+      const notifIcon = document.getElementById("notifIcon");
+      const savedCount = localStorage.getItem("orderNotifCount");
+      notifIcon.setAttribute("data-count", savedCount || 0);
+
+      function incrementNotification() {
+        const currentCount = parseInt(notifIcon.getAttribute("data-count")) || 0;
+        const newCount = currentCount + 1;
+        notifIcon.setAttribute("data-count", newCount);
+        localStorage.setItem("orderNotifCount", newCount);
+      }
+
+      notifIcon.addEventListener("click", () => {
+        notifIcon.setAttribute("data-count", 0);
+        localStorage.setItem("orderNotifCount", 0);
+        window.location.href = "orders.html";
+      });
+
+      socket.on("newOrder", (order) => {
         console.log("⚡ New order received:", order);
+        incrementNotification();
 
-        // ---------- Notification Bell Logic ----------
-  const notifIcon = document.getElementById("notifIcon");
+        const ordersCountEl = document.getElementById("ordersCount");  
+        const pendingOrdersEl = document.getElementById("pendingOrders");  
+        const processingOrdersEl = document.getElementById("processingOrders");  
+        const revenueEl = document.getElementById("revenue");  
 
-  // Load saved count from localStorage
-  const savedCount = localStorage.getItem("orderNotifCount");
-  notifIcon.setAttribute("data-count", savedCount || 0);
-
-  // Increase count when a new order arrives
-  function incrementNotification() {
-    const currentCount = parseInt(notifIcon.getAttribute("data-count")) || 0;
-    const newCount = currentCount + 1;
-    notifIcon.setAttribute("data-count", newCount);
-    localStorage.setItem("orderNotifCount", newCount);
-  }
-
-  // Socket event for new order
-  socket.on("newOrder", (order) => {
-    console.log("⚡ New order received:", order);
-    incrementNotification();
-
-    // update dashboard numbers
-    const ordersCountEl = document.getElementById("ordersCount");
-    const pendingOrdersEl = document.getElementById("pendingOrders");
-    const processingOrdersEl = document.getElementById("processingOrders");
-    const revenueEl = document.getElementById("revenue");
-
-    ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
-    pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
-    processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
-    revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
-  });
-
-  // When notification icon is clicked
-  notifIcon.addEventListener("click", () => {
-    notifIcon.setAttribute("data-count", 0);
-    localStorage.setItem("orderNotifCount", 0);
-    window.location.href = "orders.html";
-  });
-
-        const ordersCountEl = document.getElementById("ordersCount");
-        const pendingOrdersEl = document.getElementById("pendingOrders");
-        const processingOrdersEl = document.getElementById("processingOrders");
-        const revenueEl = document.getElementById("revenue");
-        const notifIcon = document.getElementById("notifIcon");
-
-        ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
-        pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
-        processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+        ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;  
+        pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);  
+        processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);  
         revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
-        notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
 
-        const tbody = document.querySelector("#recentOrdersTable tbody");
-        const tr = document.createElement("tr");
+        const tbody = document.querySelector("#recentOrdersTable tbody");  
+        const tr = document.createElement("tr");  
         tr.innerHTML = `
-          <td>#${ordersCountEl.textContent}</td>
-          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-          <td>₦${order.totalAmount.toLocaleString()}</td>
-        `;
+          <td>${order.reference}</td>  
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>  
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>  
+          <td>₦${order.totalAmount.toLocaleString()}</td>  
+        `;  
         tbody.prepend(tr);
       });
     } else {
-      console.error("❌ Socket.IO (io) is not loaded!");
+      console.error("❌ Socket.IO not loaded");
     }
   };
   document.head.appendChild(socketScript);
 
-  //=≠==== OneSignal Integration ==≠======
-window.OneSignal = window.OneSignal || [];
-OneSignal.push(function() {
-  OneSignal.init({
-    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-    safari_web_id: "YOUR-SAFARI-WEB-ID-IF-AVAILABLE",
-    notifyButton: {
-      enable: true,
-      size: 'medium',
-      theme: 'default',
-      position: 'bottom-right',
-      text: {
-        'tip.state.unsubscribed': 'Subscribe to notifications',
-        'tip.state.subscribed': 'You’re subscribed!',
-        'tip.state.blocked': 'You’ve blocked notifications',
-        'message.prenotify': 'Click to subscribe!',
-        'message.action.subscribed': 'Thanks for subscribing!',
-        'message.action.resubscribed': 'You’re subscribed again!',
-        'message.action.unsubscribed': 'You won’t receive notifications.',
-        'dialog.main.title': 'Manage Site Notifications',
-        'dialog.main.button.subscribe': 'SUBSCRIBE',
-        'dialog.main.button.unsubscribe': 'UNSUBSCRIBE'
-      },
-    },
-    allowLocalhostAsSecureOrigin: true,
+  // ---------- OneSignal ----------
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+      safari_web_id: "YOUR-SAFARI-WEB-ID-IF-AVAILABLE",
+      notifyButton: { enable: true },
+      allowLocalhostAsSecureOrigin: true,
+    });
+    OneSignal.setDefaultNotificationUrl("https://tastybite.vercel.app/admin-dashboard.html");
   });
 
-  // 👇 Set default redirect URL for notifications AFTER initialization
-  OneSignal.setDefaultNotificationUrl("https://tastybite.vercel.app/admin-dashboard.html");
-});
-  
-  // ---------- Sidebar toggle ----------
-  document.getElementById("toggleMenu").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("active");
-  });
+  // ---------- Sidebar Toggle ----------
+  document.getElementById("toggleMenu").addEventListener("click", () => {  
+    document.getElementById("sidebar").classList.toggle("active");  
+  });  
 
   // ---------- Load Dashboard Data ----------
-  async function loadDashboardData() {
-    try {
-      const res = await fetch(`${backendURL}/api/admin/stats`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+  async function loadDashboardData() {  
+    try {  
+      const res = await fetch(`${backendURL}/api/admin/stats`);  
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
+      const data = await res.json();  
 
-      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
-      document.getElementById("ordersCount").textContent = data.totalOrders;
-      document.getElementById("pendingOrders").textContent = data.pendingOrders;
-      document.getElementById("processingOrders").textContent = data.processingOrders;
+      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;  
+      document.getElementById("ordersCount").textContent = data.totalOrders;  
+      document.getElementById("pendingOrders").textContent = data.pendingOrders;  
+      document.getElementById("processingOrders").textContent = data.processingOrders;  
 
-      const tbody = document.querySelector("#recentOrdersTable tbody");
-      tbody.innerHTML = "";
-      data.recentOrders.forEach((order, index) => {
-        const tr = document.createElement("tr");
+      const tbody = document.querySelector("#recentOrdersTable tbody");  
+      tbody.innerHTML = "";  
+      data.recentOrders.forEach((order) => {  
+        const tr = document.createElement("tr");  
         tr.innerHTML = `
-          <td>#${index + 1}</td>
-          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
-          <td>₦${order.totalAmount.toLocaleString()}</td>
+          <td>${order.reference}</td>
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>  
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>  
+          <td>₦${order.totalAmount.toLocaleString()}</td>  
         `;
         tbody.appendChild(tr);
       });
-    } catch(err) {
+    } catch (err) {
       console.error("Failed to fetch dashboard data:", err);
     }
   }
 
   loadDashboardData();
 });
-</script>
-</body>
-  </html>
+</script>  
+</body>  
+          </html>
