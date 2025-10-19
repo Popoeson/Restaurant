@@ -120,6 +120,45 @@ document.addEventListener("DOMContentLoaded", () => {
       socket.on("newOrder", order => {
         console.log("⚡ New order received:", order);
 
+        // ---------- Notification Bell Logic ----------
+  const notifIcon = document.getElementById("notifIcon");
+
+  // Load saved count from localStorage
+  const savedCount = localStorage.getItem("orderNotifCount");
+  notifIcon.setAttribute("data-count", savedCount || 0);
+
+  // Increase count when a new order arrives
+  function incrementNotification() {
+    const currentCount = parseInt(notifIcon.getAttribute("data-count")) || 0;
+    const newCount = currentCount + 1;
+    notifIcon.setAttribute("data-count", newCount);
+    localStorage.setItem("orderNotifCount", newCount);
+  }
+
+  // Socket event for new order
+  socket.on("newOrder", (order) => {
+    console.log("⚡ New order received:", order);
+    incrementNotification();
+
+    // update dashboard numbers
+    const ordersCountEl = document.getElementById("ordersCount");
+    const pendingOrdersEl = document.getElementById("pendingOrders");
+    const processingOrdersEl = document.getElementById("processingOrders");
+    const revenueEl = document.getElementById("revenue");
+
+    ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+    pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+    processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+    revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
+  });
+
+  // When notification icon is clicked
+  notifIcon.addEventListener("click", () => {
+    notifIcon.setAttribute("data-count", 0);
+    localStorage.setItem("orderNotifCount", 0);
+    window.location.href = "orders.html";
+  });
+
         const ordersCountEl = document.getElementById("ordersCount");
         const pendingOrdersEl = document.getElementById("pendingOrders");
         const processingOrdersEl = document.getElementById("processingOrders");
