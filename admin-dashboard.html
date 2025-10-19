@@ -149,25 +149,40 @@ document.addEventListener("DOMContentLoaded", () => {
   document.head.appendChild(socketScript);
 
   // ---------- OneSignal ----------
+
+  // Make sure OneSignal exists
   window.OneSignal = window.OneSignal || [];
+
   OneSignal.push(() => {
-    OneSignal.init({ 
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", 
-      notifyButton: { enable: true } 
+    // Initialize OneSignal
+    OneSignal.init({
+      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", // Your OneSignal App ID
+      allowLocalhostAsSecureOrigin: true, // optional for testing locally
+      notifyButton: { enable: true },
     });
 
-    try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
+    // Ask the user to enable push notifications
+    OneSignal.showSlidedownPrompt();
 
-    // ✅ Add event listeners inside push()
-    OneSignal.isPushNotificationsSupported().then(supported => {
-      if (supported) {
-        OneSignal.on("notificationDisplay", event => {
-          console.log("Notification displayed:", event);
-          const notifIcon = document.getElementById("notifIcon");
-          notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
-        });
-      }
-    }).catch(err => console.warn("OneSignal support check failed:", err));
+    // Check if push notifications are enabled
+    OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
+      console.log("Push notifications enabled:", isEnabled);
+    });
+
+    // Listen for subscription changes (when user allows notifications)
+    OneSignal.on("subscriptionChange", (isSubscribed) => {
+      console.log("Subscription status changed:", isSubscribed);
+    });
+
+    // Listen for incoming notifications
+    OneSignal.on("notificationDisplay", (event) => {
+      console.log("Notification displayed:", event);
+      const notifIcon = document.getElementById("notifIcon");
+      notifIcon.setAttribute(
+        "data-count",
+        (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1
+      );
+    });
   });
 
   // ---------- Sidebar toggle ----------
