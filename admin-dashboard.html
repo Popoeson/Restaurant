@@ -7,6 +7,8 @@
 
 <!-- OneSignal SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<!-- Socket.IO -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-FVL7NYsVgM4OSxK9kIWpL8q8k0FAH+zFG6oR8Zd6Jw+T2H3p0j5FqGZCUEXc5eR1" crossorigin="anonymous"></script>
 
 <style>
   body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
@@ -121,18 +123,17 @@ document.getElementById("toggleMenu").addEventListener("click", () => {
   document.getElementById("sidebar").classList.toggle("active");
 });
 
-// ---------- OneSignal Push Setup ----------
+// ---------- OneSignal Setup ----------
 window.OneSignal = window.OneSignal || [];
-OneSignal.push(function() {
-  OneSignal.init({
+OneSignal.push(async function() {
+  await OneSignal.init({
     appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-    notifyButton: { enable: true }, // shows the bell icon
+    notifyButton: { enable: true },
   });
 
-  // Prompt the admin to subscribe manually
-  OneSignal.showNativePrompt();
+  try { await OneSignal.showSlidedownPrompt(); } 
+  catch (err) { console.warn("Slidedown prompt failed:", err); }
 
-  // Listen for notifications while admin is online
   OneSignal.on("notificationDisplay", function(event) {
     console.log("Notification displayed:", event);
     const notifIcon = document.getElementById("notifIcon");
@@ -141,7 +142,7 @@ OneSignal.push(function() {
   });
 });
 
-// ---------- Dashboard Data ----------
+// ---------- Load Dashboard Data ----------
 async function loadDashboardData() {
   try {
     const res = await fetch(`${backendURL}/api/admin/stats`);
@@ -171,43 +172,51 @@ async function loadDashboardData() {
 
 loadDashboardData();
 
-// ---------- Poll for New Orders ----------
-let lastOrderCount = 0;
+// ---------- WebSocket Setup ----------
+const socket = io(backendURL);
 
-async function checkNewOrders() {
-  try {
-    const res = await fetch(`${backendURL}/api/admin/stats`);
-    const data = await res.json();
+// Listen for new orders
+socket.on("newOrder", (order) => {
+  console.log("⚡ New order received via WebSocket:", order);
 
-    if (data.totalOrders > lastOrderCount) {
-      const newOrders = data.totalOrders - lastOrderCount;
+  // Update dashboard stats
+  const ordersCountEl = document.getElementById("ordersCount");
+  const pendingOrdersEl = document.getElementById("pendingOrders");
+  const revenueEl = document.getElementById("revenue");
+  const processingOrdersEl = document.getElementById("processingOrders");
 
-      // Update bell count
-      const notifIcon = document.getElementById("notifIcon");
-      let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
-      notifIcon.setAttribute("data-count", count + newOrders);
+  ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+  pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+  processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
+  revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.amount).toLocaleString()}`;
 
-      // Send OneSignal self-notification (optional)
-      OneSignal.push(() => {
-        OneSignal.sendSelfNotification(
-          "New Order Received!",
-          `You have ${newOrders} new order(s).`,
-          "https://restaurant-plum.vercel.app/admin-dashboard.html",
-          {},
-          { notificationType: "new_order" }
-        );
-      });
-    }
+  // Update bell count
+  const notifIcon = document.getElementById("notifIcon");
+  let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
+  notifIcon.setAttribute("data-count", count + 1);
 
-    lastOrderCount = data.totalOrders;
-  } catch (err) {
-    console.error("Error checking new orders:", err);
-  }
-}
+  // Prepend new order to table
+  const tbody = document.querySelector("#recentOrdersTable tbody");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>#${parseInt(ordersCountEl.textContent)}</td>
+    <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+    <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+    <td>₦${order.amount.toLocaleString()}</td>
+  `;
+  tbody.prepend(tr);
 
-// Poll every 10 seconds
-setInterval(checkNewOrders, 10000);
+  // Optional: OneSignal self-notification
+  OneSignal.push(() => {
+    OneSignal.sendSelfNotification(
+      "New Order Received!",
+      `Order ID: ${order.orderId}, Amount: ₦${order.amount.toLocaleString()}`,
+      `${window.location.href}`,
+      {},
+      { notificationType: "new_order" }
+    );
+  });
+});
 </script>
-
 </body>
-</html>
+  </html>
