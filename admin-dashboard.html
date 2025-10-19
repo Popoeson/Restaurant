@@ -153,44 +153,51 @@ document.addEventListener("DOMContentLoaded", () => {
   window.OneSignal = window.OneSignal || [];
 
   OneSignal.push(() => {
-    // Initialize OneSignal
-    OneSignal.init({
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", // Your OneSignal App ID
-      allowLocalhostAsSecureOrigin: true, // for local testing
-      notifyButton: {
-        enable: true,   // optional, shows bell
-      }
-    });
-
-    // Auto-register for push notifications (admins will receive pushes even without clicking bell)
-    OneSignal.registerForPushNotifications();
-
-    // Get subscription state
-    OneSignal.getSubscriptionState().then(state => {
-      console.log("✅ OneSignal subscription state:", state);
-      const notifIcon = document.getElementById("notifIcon");
-      if(state.subscribed) {
-        notifIcon.style.opacity = "1"; // Show bell/notification icon if subscribed
-      } else {
-        notifIcon.style.opacity = "0.5"; // partially faded if not subscribed
-      }
-    });
-
-    // Listen for subscription changes (when user allows notifications)
-    OneSignal.on('subscriptionChange', isSubscribed => {
-      console.log("🔔 Subscription changed:", isSubscribed);
-    });
-
-    // Listen for incoming notifications (while on page)
-    OneSignal.on('notificationDisplay', event => {
-      console.log("📣 Notification displayed:", event);
-      const notifIcon = document.getElementById("notifIcon");
-      notifIcon.setAttribute(
-        "data-count",
-        (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1
-      );
-    });
+  OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+    allowLocalhostAsSecureOrigin: true,
+    notifyButton: { enable: true },
   });
+
+  // Ask user to allow notifications
+  OneSignal.showSlidedownPrompt();
+
+  // Get subscription state and player ID
+  OneSignal.on('subscriptionChange', async (isSubscribed) => {
+    console.log("🔔 Subscription changed:", isSubscribed);
+
+    if (isSubscribed) {
+      // Get player ID
+      const state = await OneSignal.getUserId();
+      console.log("✅ Player ID:", state);
+
+      // Send player ID to backend
+      try {
+        await fetch(`${backendURL}/api/admin/save-player-id`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId: state })
+        });
+        console.log("📤 Player ID saved to backend");
+      } catch (err) {
+        console.error("❌ Failed to save player ID:", err);
+      }
+
+      // Show notification bell
+      document.getElementById("notifIcon").style.opacity = "1";
+    }
+  });
+
+  // Listen for incoming notifications while admin is on page
+  OneSignal.on('notificationDisplay', event => {
+    console.log("📣 Notification displayed:", event);
+    const notifIcon = document.getElementById("notifIcon");
+    notifIcon.setAttribute(
+      "data-count",
+      (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1
+    );
+  });
+});
   
   // ---------- Sidebar toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
