@@ -208,6 +208,25 @@ app.post("/api/payment/verify", async (req, res) => {
       await newOrder.save();
       console.log("✅ Payment verified and order saved:", newOrder.reference);
 
+     // === Send OneSignal notification ===
+try {
+  await axios.post('https://onesignal.com/api/v1/notifications', {
+    app_id: process.env.ONESIGNAL_APP_ID,
+    headings: { en: "🍴 New Order Received!" },
+    contents: { en: `New order from ${newOrder.name} — ₦${newOrder.totalAmount.toLocaleString()}` },
+    included_segments: ["All"], // Sends to all subscribers
+    url: "https://tastybite.vercel.app/admin-dashboard.html" // Link to open
+  }, {
+    headers: {
+      Authorization: `Basic ${process.env.ONESIGNAL_REST_KEY}`,
+      "Content-Type": "application/json"
+    }
+  });
+  console.log("📢 OneSignal notification sent successfully");
+} catch (err) {
+  console.error("❌ Error sending OneSignal notification:", err.message);
+}
+     
       // Emit real-time order to admin via Socket.io
       io.emit("newOrder", {
         customer: newOrder.name,
