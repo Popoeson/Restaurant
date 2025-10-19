@@ -362,9 +362,9 @@ app.get("/api/admin/stats", async (req, res) => {
 app.post("/api/admin/save-player-id", async (req, res) => {
   try {
     const { playerId } = req.body;
-    const adminId = "YOUR_ADMIN_ID_HERE"; // Or get from session/auth
+    if (!req.session.adminId) return res.status(401).json({ message: "Not logged in" });
 
-    await Admin.findByIdAndUpdate(adminId, { oneSignalPlayerId: playerId }, { new: true });
+    await Admin.findByIdAndUpdate(req.session.adminId, { oneSignalPlayerId: playerId }, { new: true });
     res.json({ success: true, message: "Player ID saved" });
   } catch (err) {
     console.error("❌ Error saving player ID:", err.message);
