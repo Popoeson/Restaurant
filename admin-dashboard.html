@@ -6,8 +6,6 @@
 <title>Admin Dashboard | TastyBite</title>
 
 <!-- OneSignal SDK-->
-<!-- <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"></script> -->
-  
 <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
 
 <style>
@@ -175,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
       allowLocalhostAsSecureOrigin: true,
+      OneSignal.setDefaultNotificationUrl("https://tastybite.vercel.app/admin-dashboard.html");
     });
   });
 
