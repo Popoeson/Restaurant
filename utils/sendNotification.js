@@ -1,27 +1,37 @@
-// utils/sendNotification.js
-import axios from "axios";
+import fetch from "node-fetch";
 
-export const sendNotification = async (title, message, url = "https://tastybite.vercel.app/admin-dashboard.html") => {
+async function sendNewOrderNotification(order) {
   try {
-    const res = await axios.post(
-      "https://onesignal.com/api/v1/notifications",
-      {
-        app_id: process.env.ONESIGNAL_APP_ID,
-        included_segments: ["All"], // send to all subscribed users
-        headings: { en: title },
-        contents: { en: message },
-        url,
-      },
-      {
-        headers: {
-          Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // 🧩 Debug logs for environment variables
+    console.log("🔑 OneSignal Key Exists:", !!process.env.ONESIGNAL_API_KEY);
+    console.log("📱 OneSignal App ID Exists:", !!process.env.ONESIGNAL_APP_ID);
 
-    console.log("✅ Notification sent:", res.data.id);
+    // ✅ Correct endpoint for OneSignal notifications
+    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${process.env.ONESIGNAL_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        app_id: process.env.ONESIGNAL_APP_ID,
+        headings: { en: "New Order Received 🍽️" },
+        contents: { en: `Order ${order.reference} from ${order.customerName}` },
+        included_segments: ["All"],
+        url: "https://restaurant-plum.vercel.app/admin-dashboard.html"
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log("✅ Push notification sent:", data.id || data);
+    } else {
+      console.error("❌ OneSignal API error:", data);
+    }
   } catch (err) {
-    console.error("❌ Error sending notification:", err.response?.data || err.message);
+    console.error("❌ Error sending notification:", err);
   }
-};
+}
+
+export default sendNewOrderNotification;
