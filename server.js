@@ -13,6 +13,32 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// ====== OneSignal Notification Helper ======
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; // set in your .env
+const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY; // set in your .env
+
+async function sendOneSignalNotification(title, message) {
+  try {
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      headings: { en: title },
+      contents: { en: message },
+      included_segments: ["Subscribed Users"], // All subscribed admins
+    };
+
+    const response = await axios.post("https://onesignal.com/api/v1/notifications", payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${ONESIGNAL_REST_KEY}`,
+      },
+    });
+
+    console.log("✅ OneSignal notification sent:", response.data);
+  } catch (err) {
+    console.error("❌ Error sending OneSignal notification:", err.message);
+  }
+}
+
 // ====== MongoDB Connection ======
 mongoose
   .connect(process.env.MONGO_URI)
@@ -170,20 +196,43 @@ app.post("/api/payment/verify", async (req, res) => {
     const data = response.data.data;
 
     if (data.status === "success") {
-      // ✅ Save order
-      const newOrder = new Order({
-        name: orderData.name,
-        email: orderData.email,
-        phone: orderData.phone,
-        address: orderData.address,
-        junction: orderData.junction,
-        items: orderData.items,
-        totalAmount: orderData.totalAmount,
-        reference,
-        status: "paid",
-      });
 
-      await newOrder.save();
+      // ✅ Save order
+const newOrder = new Order({
+  name: orderData.name,
+  email: orderData.email,
+  phone: orderData.phone,
+  address: orderData.address,
+  junction: orderData.junction,
+  items: orderData.items,
+  totalAmount: orderData.totalAmount,
+  reference,
+  status: "paid",
+});
+
+await newOrder.save();
+
+// ✅ Send OneSignal notification to admin
+const notifTitle = "New Order Received!";
+const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
+sendOneSignalNotification(notifTitle, notifMessage);
+
+// ✅ Send SMS using Termii
+      
+      // ✅ Save order
+  //    const newOrder = new Order({
+    //    name: orderData.name,
+   //     email: orderData.email,
+   //     phone: orderData.phone,
+   //     address: orderData.address,
+   //     junction: orderData.junction,
+   //     items: orderData.items,
+   //     totalAmount: orderData.totalAmount,
+   //     reference,
+   //     status: "paid",
+  //    });
+
+  //    await newOrder.save();
 
       // ✅ Send SMS using Termii
       const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
