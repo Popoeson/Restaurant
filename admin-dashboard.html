@@ -150,36 +150,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- OneSignal ----------
 
-  // Make sure OneSignal exists
   window.OneSignal = window.OneSignal || [];
 
   OneSignal.push(() => {
     // Initialize OneSignal
     OneSignal.init({
       appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", // Your OneSignal App ID
-      allowLocalhostAsSecureOrigin: true, // optional for testing locally
-      notifyButton: { enable: true },
+      allowLocalhostAsSecureOrigin: true, // for local testing
+      notifyButton: {
+        enable: true,   // optional, shows bell
+      }
     });
 
-    // Ask the user to enable push notifications
-    OneSignal.showSlidedownPrompt();
+    // Auto-register for push notifications (admins will receive pushes even without clicking bell)
+    OneSignal.registerForPushNotifications();
 
-    // Check if push notifications are enabled
+    // Get subscription state
     OneSignal.getSubscriptionState().then(state => {
-  console.log("Subscribed?", state.subscribed);
-   });
- //   OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
-     // console.log("Push notifications enabled:", isEnabled);
- //   });
+      console.log("✅ OneSignal subscription state:", state);
+      const notifIcon = document.getElementById("notifIcon");
+      if(state.subscribed) {
+        notifIcon.style.opacity = "1"; // Show bell/notification icon if subscribed
+      } else {
+        notifIcon.style.opacity = "0.5"; // partially faded if not subscribed
+      }
+    });
 
     // Listen for subscription changes (when user allows notifications)
-    OneSignal.on("subscriptionChange", (isSubscribed) => {
-      console.log("Subscription status changed:", isSubscribed);
+    OneSignal.on('subscriptionChange', isSubscribed => {
+      console.log("🔔 Subscription changed:", isSubscribed);
     });
 
-    // Listen for incoming notifications
-    OneSignal.on("notificationDisplay", (event) => {
-      console.log("Notification displayed:", event);
+    // Listen for incoming notifications (while on page)
+    OneSignal.on('notificationDisplay', event => {
+      console.log("📣 Notification displayed:", event);
       const notifIcon = document.getElementById("notifIcon");
       notifIcon.setAttribute(
         "data-count",
@@ -187,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   });
-
+  
   // ---------- Sidebar toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
     document.getElementById("sidebar").classList.toggle("active");
