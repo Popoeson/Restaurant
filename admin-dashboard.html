@@ -107,12 +107,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   const backendURL = "https://restaurant-eqbo.onrender.com";
 
-  // ---------- Dynamically load Socket.IO ----------
+  // ---------- Socket.IO ----------
   const socketScript = document.createElement("script");
-  socketScript.src = "https://cdn.socket.io/4.9.3/socket.io.min.js";
+  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.9.3/dist/socket.io.min.js";
   socketScript.onload = () => {
     if (typeof io !== "undefined") {
-      const socket = io(backendURL);
+      const socket = io(backendURL, { transports: ["websocket"] });
 
       socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
       socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
@@ -151,16 +151,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- OneSignal ----------
   window.OneSignal = window.OneSignal || [];
   OneSignal.push(() => {
-    OneSignal.init({ appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", notifyButton: { enable: true } });
+    OneSignal.init({ 
+      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", 
+      notifyButton: { enable: true } 
+    });
+
     try { OneSignal.showSlidedownPrompt(); } catch(e) { console.warn(e); }
-    
-    if (OneSignal.isPushNotificationsSupported && OneSignal.isPushNotificationsSupported()) {
-      OneSignal.on("notificationDisplay", event => {
-        console.log("Notification displayed:", event);
-        const notifIcon = document.getElementById("notifIcon");
-        notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
-      });
-    }
+
+    // ✅ Add event listeners inside push()
+    OneSignal.isPushNotificationsSupported().then(supported => {
+      if (supported) {
+        OneSignal.on("notificationDisplay", event => {
+          console.log("Notification displayed:", event);
+          const notifIcon = document.getElementById("notifIcon");
+          notifIcon.setAttribute("data-count", (parseInt(notifIcon.getAttribute("data-count")) || 0) + 1);
+        });
+      }
+    }).catch(err => console.warn("OneSignal support check failed:", err));
   });
 
   // ---------- Sidebar toggle ----------
@@ -201,4 +208,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 </body>
-</html>
+  </html>
