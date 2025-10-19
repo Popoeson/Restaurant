@@ -122,27 +122,26 @@ document.getElementById("toggleMenu").addEventListener("click", () => {
 });
 
 // ---------- OneSignal Push Setup ----------
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(async function(OneSignal) {
-  await OneSignal.init({
-    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", // Your OneSignal App ID
-    notifyButton: { enable: true },
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+  OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+    notifyButton: { enable: true }, // shows the bell icon
   });
 
-  // Prompt the admin to subscribe if not already
-  OneSignal.showSlidedownPrompt();
+  // Prompt the admin to subscribe manually
+  OneSignal.showNativePrompt();
 
-  // Optional: Listen for new notifications while admin is online
+  // Listen for notifications while admin is online
   OneSignal.on("notificationDisplay", function(event) {
     console.log("Notification displayed:", event);
-    // Increment the badge counter
     const notifIcon = document.getElementById("notifIcon");
     let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
     notifIcon.setAttribute("data-count", count + 1);
   });
 });
 
-// ---------- Load Dashboard Data ----------
+// ---------- Dashboard Data ----------
 async function loadDashboardData() {
   try {
     const res = await fetch(`${backendURL}/api/admin/stats`);
@@ -171,6 +170,44 @@ async function loadDashboardData() {
 }
 
 loadDashboardData();
+
+// ---------- Poll for New Orders ----------
+let lastOrderCount = 0;
+
+async function checkNewOrders() {
+  try {
+    const res = await fetch(`${backendURL}/api/admin/stats`);
+    const data = await res.json();
+
+    if (data.totalOrders > lastOrderCount) {
+      const newOrders = data.totalOrders - lastOrderCount;
+
+      // Update bell count
+      const notifIcon = document.getElementById("notifIcon");
+      let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
+      notifIcon.setAttribute("data-count", count + newOrders);
+
+      // Send OneSignal self-notification (optional)
+      OneSignal.push(() => {
+        OneSignal.sendSelfNotification(
+          "New Order Received!",
+          `You have ${newOrders} new order(s).`,
+          "https://restaurant-plum.vercel.app/admin-dashboard.html",
+          {},
+          { notificationType: "new_order" }
+        );
+      });
+    }
+
+    lastOrderCount = data.totalOrders;
+  } catch (err) {
+    console.error("Error checking new orders:", err);
+  }
+}
+
+// Poll every 10 seconds
+setInterval(checkNewOrders, 10000);
 </script>
+
 </body>
-  </html>
+</html>
