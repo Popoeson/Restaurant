@@ -210,64 +210,95 @@ app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
 
+    // 1️⃣ Verify payment with Paystack
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
     });
 
     const data = response.data.data;
 
-    if (data.status === "success") {
-      const newOrder = new Order({
-        name: orderData.name,
-        email: orderData.email,
-        phone: orderData.phone,
-        address: orderData.address,
-        junction: orderData.junction,
-        items: orderData.items,
-        totalAmount: orderData.totalAmount,
-        reference,
-        status: "paid",
-      });
+    if (data.status !== "success") {
+      return res.status(400).json({ success: false, message: "Payment not successful" });
+    }
 
-      await newOrder.save();
+    // 2️⃣ Save new order
+    const newOrder = new Order({
+      name: orderData.name,
+      email: orderData.email,
+      phone: orderData.phone,
+      address: orderData.address,
+      junction: orderData.junction,
+      items: orderData.items,
+      totalAmount: orderData.totalAmount,
+      reference,
+      status: "paid",
+    });
+    await newOrder.save();
 
-      // OneSignal notification
-      const notifTitle = "New Order Received!";
-      const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
-      sendOneSignalNotification(notifTitle, notifMessage);
-
-      // Emit WebSocket notification
-      notifyAdminsNewOrder(newOrder);
-
-      // SMS via Termii
-      const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
+    // 3️⃣ Send SMS via Termii
+    const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
 Order ID: ${reference}.
 Keep this ID safe — your dispatcher will confirm it at delivery.`;
 
-      const smsPayload = {
-        to: orderData.phone,
-        from: TERMII_SENDER_ID,
-        sms: smsMessage,
-        type: "plain",
-        api_key: TERMII_API_KEY,
-        channel: "generic",
-      };
+    const smsPayload = {
+      to: orderData.phone,
+      from: TERMII_SENDER_ID,
+      sms: smsMessage,
+      type: "plain",
+      api_key: TERMII_API_KEY,
+      channel: "generic",
+    };
+
+    try {
+      const smsResponse = await axios.post(TERMII_API_URL, smsPayload);
+      console.log("📩 SMS sent:", smsResponse.data);
+    } catch (smsErr) {
+      console.error("❌ Error sending SMS:", smsErr.message);
+    }
+
+    // 4️⃣ Send OneSignal notifications to subscribed admins
+    // Fetch admin player IDs from your database
+    const subscribedAdmins = await Admin.find({ oneSignalPlayerId: { $exists: true, $ne: "" } });
+    const playerIds = subscribedAdmins.map(a => a.oneSignalPlayerId);
+
+    if (playerIds.length > 0) {
+      const notifTitle = "New Order Received!";
+      const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
 
       try {
-        const smsResponse = await axios.post(TERMII_API_URL, smsPayload);
-        console.log("📩 SMS sent:", smsResponse.data);
-      } catch (smsErr) {
-        console.error("❌ Error sending SMS:", smsErr.message);
+        const notifResponse = await axios.post(
+          "https://onesignal.com/api/v1/notifications",
+          {
+            app_id: ONESIGNAL_APP_ID,
+            headings: { en: notifTitle },
+            contents: { en: notifMessage },
+            include_player_ids: playerIds,
+          },
+          {
+            headers: {
+              Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("✅ OneSignal notification sent:", notifResponse.data);
+      } catch (err) {
+        console.error("❌ OneSignal send error:", err.response?.data || err.message);
       }
-
-      res.json({
-        success: true,
-        message: "Payment verified, order saved, OneSignal + SMS sent",
-        order: newOrder,
-      });
     } else {
-      res.status(400).json({ success: false, message: "Payment not successful" });
+      console.warn("⚠️ No subscribed admins to send notification");
     }
+
+    // 5️⃣ Emit WebSocket event for real-time dashboard update
+    notifyAdminsNewOrder(newOrder);
+
+    // 6️⃣ Respond to client
+    res.json({
+      success: true,
+      message: "Payment verified, order saved, SMS + OneSignal notification sent",
+      order: newOrder,
+    });
+
   } catch (err) {
     console.error("❌ Payment verification error:", err.message);
     res.status(500).json({ success: false, message: "Error verifying payment", error: err.message });
