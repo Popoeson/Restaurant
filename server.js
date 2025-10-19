@@ -205,24 +205,39 @@ function notifyAdminsNewOrder(order) {
   });
 }
 
-// ====== Verify Paystack Payment + Send SMS + OneSignal + WebSocket ======
+// ====== Verify Paystack Payment + Save Order + Notify ======
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
 
+    // Validate request body
+    if (!reference || !orderData) {
+      return res.status(400).json({ success: false, message: "Missing payment reference or order data." });
+    }
+
+    console.log("🔎 Verifying Paystack reference:", reference);
+
     // 1️⃣ Verify payment with Paystack
-    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+    const verifyRes = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET}` },
     });
 
-    const data = response.data.data;
+    if (!verifyRes.data || !verifyRes.data.status) {
+      console.error("⚠️ Paystack verification failed:", verifyRes.data);
+      return res.status(400).json({ success: false, message: "Invalid Paystack response" });
+    }
 
-    if (data.status !== "success") {
+    const payment = verifyRes.data.data;
+
+    if (payment.status !== "success") {
+      console.log("❌ Payment not successful for reference:", reference);
       return res.status(400).json({ success: false, message: "Payment not successful" });
     }
 
-    // 2️⃣ Save new order
-    const newOrder = new Order({
+    console.log("✅ Payment verified successfully for:", payment.customer.email);
+
+    // 2️⃣ Save order to database
+    const order = new Order({
       name: orderData.name,
       email: orderData.email,
       phone: orderData.phone,
@@ -231,77 +246,65 @@ app.post("/api/payment/verify", async (req, res) => {
       items: orderData.items,
       totalAmount: orderData.totalAmount,
       reference,
-      status: "paid",
+      paymentStatus: "Paid",
+      paymentChannel: payment.channel,
+      createdAt: new Date(),
     });
-    await newOrder.save();
 
-    // 3️⃣ Send SMS via Termii
-    const smsMessage = `Hello ${orderData.name}, your order has been received successfully! 🍴
-Order ID: ${reference}.
-Keep this ID safe — your dispatcher will confirm it at delivery.`;
+    await order.save();
+    console.log("🧾 Order saved:", order._id);
 
-    const smsPayload = {
-      to: orderData.phone,
-      from: TERMII_SENDER_ID,
-      sms: smsMessage,
-      type: "plain",
-      api_key: TERMII_API_KEY,
-      channel: "generic",
-    };
-
+    // 3️⃣ Send SMS notification (Termii)
     try {
-      const smsResponse = await axios.post(TERMII_API_URL, smsPayload);
-      console.log("📩 SMS sent:", smsResponse.data);
+      await axios.post("https://api.ng.termii.com/api/sms/send", {
+        to: order.phone,
+        from: "TASTY",
+        sms: `Hi ${order.name}, your order (${reference}) has been received successfully! 🍴`,
+        type: "plain",
+        channel: "generic",
+        api_key: process.env.TERMII_API_KEY,
+      });
+      console.log("📱 SMS sent to:", order.phone);
     } catch (smsErr) {
-      console.error("❌ Error sending SMS:", smsErr.message);
+      console.error("❌ Failed to send SMS:", smsErr.message);
     }
 
-    // 4️⃣ Send OneSignal notifications to subscribed admins
-    // Fetch admin player IDs from your database
-    const subscribedAdmins = await Admin.find({ oneSignalPlayerId: { $exists: true, $ne: "" } });
-    const playerIds = subscribedAdmins.map(a => a.oneSignalPlayerId);
-
-    if (playerIds.length > 0) {
-      const notifTitle = "New Order Received!";
-      const notifMessage = `Order ID: ${reference}\nCustomer: ${orderData.name}\nAmount: ₦${orderData.totalAmount.toLocaleString()}`;
-
-      try {
-        const notifResponse = await axios.post(
-          "https://onesignal.com/api/v1/notifications",
-          {
-            app_id: ONESIGNAL_APP_ID,
-            headings: { en: notifTitle },
-            contents: { en: notifMessage },
-            include_player_ids: playerIds,
-          },
-          {
-            headers: {
-              Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        console.log("✅ OneSignal notification sent:", notifResponse.data);
-      } catch (err) {
-        console.error("❌ OneSignal send error:", err.response?.data || err.message);
-      }
-    } else {
-      console.warn("⚠️ No subscribed admins to send notification");
+    // 4️⃣ Send OneSignal Notification (optional)
+    try {
+      await axios.post(
+        "https://onesignal.com/api/v1/notifications",
+        {
+          app_id: process.env.ONESIGNAL_APP_ID,
+          included_segments: ["All"],
+          headings: { en: "New Order Received 🍔" },
+          contents: { en: `${order.name} just placed an order (₦${order.totalAmount.toLocaleString()})` },
+        },
+        { headers: { Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}` } }
+      );
+      console.log("🔔 OneSignal notification sent.");
+    } catch (notifErr) {
+      console.error("❌ OneSignal error:", notifErr.message);
     }
 
-    // 5️⃣ Emit WebSocket event for real-time dashboard update
-    notifyAdminsNewOrder(newOrder);
+    // 5️⃣ Emit real-time update via WebSocket (if using socket.io)
+    if (global.io) {
+      global.io.emit("new-order", order);
+      console.log("📡 WebSocket: new order broadcasted.");
+    }
 
-    // 6️⃣ Respond to client
+    // 6️⃣ Send success response to frontend
     res.json({
       success: true,
-      message: "Payment verified, order saved, SMS + OneSignal notification sent",
-      order: newOrder,
+      message: "Payment verified and order saved successfully",
+      orderId: order._id,
     });
-
   } catch (err) {
-    console.error("❌ Payment verification error:", err.message);
-    res.status(500).json({ success: false, message: "Error verifying payment", error: err.message });
+    console.error("💥 Payment verification error:", err.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error verifying payment",
+      error: err.message,
+    });
   }
 });
 
