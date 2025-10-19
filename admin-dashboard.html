@@ -1,326 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard | TastyBite</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background-color: #f8f9fb;
-      color: #333;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard | TastyBite</title>
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(to right, #ff7f50, #ff914d);
-      color: white;
-      padding: 12px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+<!-- OneSignal SDK -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
-    .menu-toggle {
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    .brand {
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .brand span {
-      background: white;
-      color: #ff7f50;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-left: 4px;
-    }
-
-    .notification {
-      position: relative;
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    .notification::after {
-      content: attr(data-count);
-      position: absolute;
-      top: -5px;
-      right: -8px;
-      background: white;
-      color: #ff7f50;
-      font-size: 12px;
-      border-radius: 50%;
-      padding: 2px 5px;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: -250px;
-      width: 220px;
-      height: 100%;
-      background: #1f2937;
-      color: white;
-      padding: 70px 20px;
-      transition: left 0.3s ease;
-      z-index: 9;
-    }
-
-    .sidebar.active {
-      left: 0;
-    }
-
-    .sidebar a {
-      display: block;
-      color: white;
-      text-decoration: none;
-      padding: 10px 0;
-      font-size: 15px;
-    }
-
-    .sidebar a:hover {
-      color: #ff914d;
-    }
-
-    main {
-      padding: 16px;
-      margin-top: 10px;
-    }
-
-    h2 {
-      margin-bottom: 4px;
-      font-size: 20px;
-    }
-
-    p.subtitle {
-      color: gray;
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-
-    .cards {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .card-icon {
-      font-size: 24px;
-    }
-
-    .card h3 {
-      margin: 0;
-      font-size: 16px;
-      color: #555;
-    }
-
-    .card .value {
-      font-weight: bold;
-      font-size: 18px;
-      color: #111;
-    }
-
-    section {
-      margin-top: 24px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      padding: 10px;
-      font-size: 14px;
-      text-align: left;
-    }
-
-    th {
-      background: #ff914d;
-      color: white;
-    }
-
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-
-    @media (min-width: 768px) {
-      .cards {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-      .card {
-        flex: 1;
-        min-width: 180px;
-      }
-    }
-  </style>
+<style>
+  body {margin:0;font-family:"Poppins",sans-serif;background-color:#f8f9fb;color:#333;}
+  header {display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,#ff7f50,#ff914d);color:white;padding:12px 16px;position:sticky;top:0;z-index:10;}
+  .menu-toggle {font-size:22px;cursor:pointer;}
+  .brand {font-weight:600;font-size:18px;}
+  .brand span {background:white;color:#ff7f50;font-size:12px;padding:2px 6px;border-radius:6px;margin-left:4px;}
+  .notification {position:relative;font-size:22px;cursor:pointer;}
+  .notification::after {content:attr(data-count);position:absolute;top:-5px;right:-8px;background:white;color:#ff7f50;font-size:12px;border-radius:50%;padding:2px 5px;}
+  .sidebar {position:fixed;top:0;left:-250px;width:220px;height:100%;background:#1f2937;color:white;padding:70px 20px;transition:left 0.3s ease;z-index:9;}
+  .sidebar.active {left:0;}
+  .sidebar a {display:block;color:white;text-decoration:none;padding:10px 0;font-size:15px;}
+  .sidebar a:hover {color:#ff914d;}
+  main {padding:16px;margin-top:10px;}
+  h2 {margin-bottom:4px;font-size:20px;}
+  p.subtitle {color:gray;font-size:14px;margin-bottom:16px;}
+  .cards {display:flex;flex-direction:column;gap:14px;}
+  .card {background:white;border-radius:12px;padding:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;}
+  .card-icon {font-size:24px;}
+  .card h3 {margin:0;font-size:16px;color:#555;}
+  .card .value {font-weight:bold;font-size:18px;color:#111;}
+  section {margin-top:24px;}
+  table {width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,0.1);}
+  th,td {padding:10px;font-size:14px;text-align:left;}
+  th {background:#ff914d;color:white;}
+  tr:nth-child(even) {background:#f9f9f9;}
+  @media(min-width:768px){.cards{flex-direction:row;flex-wrap:wrap;}.card{flex:1;min-width:180px;}}
+</style>
 </head>
+
 <body>
-  <header>
-    <div class="menu-toggle" id="toggleMenu">☰</div>
-    <div class="brand">TastyBite <span>Admin</span></div>
-    <div class="notification" id="notifIcon" data-count="3">🔔</div>
-  </header>
+<header>
+  <div class="menu-toggle" id="toggleMenu">☰</div>
+  <div class="brand">TastyBite <span>Admin</span></div>
+  <div class="notification" id="notifIcon" data-count="0">🔔</div>
+</header>
 
-  <div class="sidebar" id="sidebar">
-    <a href="#">Dashboard</a>
-    <a href="orders.html">Orders</a>
-    <a href="admin-menu.html">Menu Management</a>
-    <a href="#">Customers</a>
-    <a href="#">Logout</a>
-  </div>
+<div class="sidebar" id="sidebar">
+  <a href="#">Dashboard</a>
+  <a href="orders.html">Orders</a>
+  <a href="admin-menu.html">Menu Management</a>
+  <a href="#">Customers</a>
+  <a href="#">Logout</a>
+</div>
 
-  <main>
-    <h2>Dashboard</h2>
-    <p class="subtitle">Welcome to your admin dashboard</p>
+<main>
+  <h2>Dashboard</h2>
+  <p class="subtitle">Welcome to your admin dashboard</p>
 
-    <div class="cards">
-      <div class="card">
-        <div>
-          <h3>Total Revenue</h3>
-          <div class="value" id="revenue">$0.00</div>
-        </div>
-        <div class="card-icon">💰</div>
+  <div class="cards">
+    <div class="card">
+      <div>
+        <h3>Total Revenue</h3>
+        <div class="value" id="revenue">₦0</div>
       </div>
-
-      <div class="card">
-        <div>
-          <h3>Total Orders</h3>
-          <div class="value" id="ordersCount">0</div>
-        </div>
-        <div class="card-icon">🛍️</div>
-      </div>
-
-      <div class="card">
-        <div>
-          <h3>Pending Orders</h3>
-          <div class="value" id="pendingOrders">0</div>
-        </div>
-        <div class="card-icon">⏳</div>
-      </div>
-
-      <div class="card">
-        <div>
-          <h3>Processing Orders</h3>
-          <div class="value" id="processingOrders">0</div>
-        </div>
-        <div class="card-icon">👨‍🍳</div>
-      </div>
+      <div class="card-icon">💰</div>
     </div>
 
-    <section>
-      <h3>Recent Orders</h3>
-      <table id="recentOrdersTable">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>#001</td>
-            <td>2025-10-16</td>
-            <td><span style="color:green;font-weight:600;">Delivered</span></td>
-            <td>$25.00</td>
-          </tr>
-          <tr>
-            <td>#002</td>
-            <td>2025-10-17</td>
-            <td><span style="color:orange;font-weight:600;">Processing</span></td>
-            <td>$15.50</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <div class="card">
+      <div>
+        <h3>Total Orders</h3>
+        <div class="value" id="ordersCount">0</div>
+      </div>
+      <div class="card-icon">🛍️</div>
+    </div>
 
-    <section>
-      <h3>Top Menu Items</h3>
-      <table id="popularItemsTable">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Times Ordered</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Margherita Pizza</td><td>2</td></tr>
-          <tr><td>Classic Cheeseburger</td><td>1</td></tr>
-          <tr><td>Iced Coffee</td><td>1</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+    <div class="card">
+      <div>
+        <h3>Pending Orders</h3>
+        <div class="value" id="pendingOrders">0</div>
+      </div>
+      <div class="card-icon">⏳</div>
+    </div>
 
-  <script>
-  const backendURL = "https://restaurant-eqbo.onrender.com";
+    <div class="card">
+      <div>
+        <h3>Processing Orders</h3>
+        <div class="value" id="processingOrders">0</div>
+      </div>
+      <div class="card-icon">👨‍🍳</div>
+    </div>
+  </div>
 
-  // Sidebar toggle
-  document.getElementById("toggleMenu").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("active");
+  <section>
+    <h3>Recent Orders</h3>
+    <table id="recentOrdersTable">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>#001</td>
+          <td>2025-10-16</td>
+          <td><span style="color:green;font-weight:600;">Delivered</span></td>
+          <td>₦25.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+const backendURL = "https://restaurant-eqbo.onrender.com";
+
+// Sidebar toggle
+document.getElementById("toggleMenu").addEventListener("click", () => {
+  document.getElementById("sidebar").classList.toggle("active");
+});
+
+// ---------- OneSignal Push Setup ----------
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(async function(OneSignal) {
+  await OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be", // Your OneSignal App ID
+    notifyButton: { enable: true },
   });
 
-  async function loadDashboardData() {
-    try {
-      const res = await fetch(`${backendURL}/api/admin/stats`);
-      const data = await res.json();
+  // Prompt the admin to subscribe if not already
+  OneSignal.showSlidedownPrompt();
 
-      // ✅ Update summary cards
-      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
-      document.getElementById("ordersCount").textContent = data.totalOrders;
-      document.getElementById("pendingOrders").textContent = data.pendingOrders;
-      document.getElementById("processingOrders").textContent = data.processingOrders;
+  // Optional: Listen for new notifications while admin is online
+  OneSignal.on("notificationDisplay", function(event) {
+    console.log("Notification displayed:", event);
+    // Increment the badge counter
+    const notifIcon = document.getElementById("notifIcon");
+    let count = parseInt(notifIcon.getAttribute("data-count")) || 0;
+    notifIcon.setAttribute("data-count", count + 1);
+  });
+});
 
-      // ✅ Populate Recent Orders Table
-      const tbody = document.querySelector("#recentOrdersTable tbody");
-      tbody.innerHTML = "";
+// ---------- Load Dashboard Data ----------
+async function loadDashboardData() {
+  try {
+    const res = await fetch(`${backendURL}/api/admin/stats`);
+    const data = await res.json();
 
-      data.recentOrders.forEach((order, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>#${index + 1}</td>
-          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
-          <td>
-            <span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">
-              ${order.status || "pending"}
-            </span>
-          </td>
-          <td>₦${order.totalAmount.toLocaleString()}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
-    }
+    document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
+    document.getElementById("ordersCount").textContent = data.totalOrders;
+    document.getElementById("pendingOrders").textContent = data.pendingOrders;
+    document.getElementById("processingOrders").textContent = data.processingOrders;
+
+    const tbody = document.querySelector("#recentOrdersTable tbody");
+    tbody.innerHTML = "";
+    data.recentOrders.forEach((order, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>#${index + 1}</td>
+        <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+        <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+        <td>₦${order.totalAmount.toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Failed to fetch dashboard data:", err);
   }
+}
 
-  loadDashboardData();
-  </script>
+loadDashboardData();
+</script>
 </body>
   </html>
