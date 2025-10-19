@@ -1,4 +1,4 @@
- // server.js
+// server.js
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
@@ -22,10 +22,10 @@ const io = new SocketIOServer(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-// Make io available globally (optional but handy)
+// Make io available globally
 global.io = io;
 
-// === Mongoose Connection ===
+// === MongoDB Connection ===
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
@@ -41,14 +41,12 @@ cloudinary.config({
 // === Multer Setup ===
 const upload = multer({ dest: "uploads/" });
 
-// ====== PAYSTACK CONFIG ======
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY
-
-// ====== OneSignal Notification Helper ======
-const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; 
+// ====== ENV CONFIG ======
+const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
 const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY;
 
-// ====== Menu Schema ======
+// ====== SCHEMAS ======
 const menuSchema = new mongoose.Schema({
   name: String,
   description: String,
@@ -60,7 +58,6 @@ const menuSchema = new mongoose.Schema({
 });
 const Menu = mongoose.model("Menu", menuSchema);
 
-// === Order Schema ===
 const orderSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -75,16 +72,17 @@ const orderSchema = new mongoose.Schema({
 });
 const Order = mongoose.model("Order", orderSchema);
 
-// === SOCKET.IO CONNECTION ===
+// === SOCKET.IO ===
 io.on("connection", (socket) => {
-  console.log("⚡ A client connected:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
-  });
+  console.log("⚡ Client connected:", socket.id);
+  socket.on("disconnect", () => console.log("❌ Client disconnected:", socket.id));
 });
 
-// GET all menu items
+// =======================
+// ===== MENU ROUTES =====
+// =======================
+
+// GET all menu
 app.get("/api/menu", async (req, res) => {
   try {
     const menu = await Menu.find().sort({ createdAt: -1 });
@@ -101,9 +99,7 @@ app.post("/api/menu", upload.single("image"), async (req, res) => {
     let imageUrl = "";
 
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "tastybite_menu",
-      });
+      const result = await cloudinary.uploader.upload(req.file.path, { folder: "tastybite_menu" });
       imageUrl = result.secure_url;
       fs.unlinkSync(req.file.path);
     }
@@ -141,9 +137,7 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
     };
 
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "tastybite_menu",
-      });
+      const result = await cloudinary.uploader.upload(req.file.path, { folder: "tastybite_menu" });
       updateData.imageUrl = result.secure_url;
       fs.unlinkSync(req.file.path);
     }
@@ -155,7 +149,7 @@ app.put("/api/menu/:id", upload.single("image"), async (req, res) => {
   }
 });
 
-// GET single menu item by ID
+// GET single menu item
 app.get("/api/menu/:id", async (req, res) => {
   try {
     const item = await Menu.findById(req.params.id);
@@ -166,7 +160,7 @@ app.get("/api/menu/:id", async (req, res) => {
   }
 });
 
-// DELETE menu item
+// DELETE menu
 app.delete("/api/menu/:id", async (req, res) => {
   try {
     await Menu.findByIdAndDelete(req.params.id);
@@ -176,7 +170,9 @@ app.delete("/api/menu/:id", async (req, res) => {
   }
 });
 
-// === PAYSTACK PAYMENT VERIFICATION ===
+// ===============================
+// ===== PAYMENT VERIFICATION =====
+// ===============================
 app.post("/api/payment/verify", async (req, res) => {
   try {
     const { reference, orderData } = req.body;
@@ -184,12 +180,11 @@ app.post("/api/payment/verify", async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing payment reference" });
     }
 
-    console.log("🔍 Verifying Paystack reference:", reference);
+    console.log("🔎 Verifying Paystack reference:", reference);
 
-    // Verify with Paystack
     const verifyRes = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
-      { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
+      { headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` } }
     );
 
     const paymentData = verifyRes.data.data;
@@ -208,26 +203,30 @@ app.post("/api/payment/verify", async (req, res) => {
       await newOrder.save();
       console.log("✅ Payment verified and order saved:", newOrder.reference);
 
-     // === Send OneSignal notification ===
-try {
-  await axios.post('https://onesignal.com/api/v1/notifications', {
-    app_id: process.env.ONESIGNAL_APP_ID,
-    headings: { en: "🍴 New Order Received!" },
-    contents: { en: `New order from ${newOrder.name} — ₦${newOrder.totalAmount.toLocaleString()}` },
-    included_segments: ["All"], // Sends to all subscribers
-    url: "https://tastybite.vercel.app/admin-dashboard.html" // Link to open
-  }, {
-    headers: {
-      Authorization: `Basic ${process.env.ONESIGNAL_REST_KEY}`,
-      "Content-Type": "application/json"
-    }
-  });
-  console.log("📢 OneSignal notification sent successfully");
-} catch (err) {
-  console.error("❌ Error sending OneSignal notification:", err.message);
-}
-     
-      // Emit real-time order to admin via Socket.io
+      // === Send OneSignal notification ===
+      try {
+        await axios.post(
+          "https://onesignal.com/api/v1/notifications",
+          {
+            app_id: ONESIGNAL_APP_ID,
+            headings: { en: "🍴 New Order Received!" },
+            contents: { en: `Order from ${newOrder.name} — ₦${newOrder.totalAmount.toLocaleString()}` },
+            included_segments: ["All"],
+            url: "https://tastybite.vercel.app/admin-dashboard.html",
+          },
+          {
+            headers: {
+              Authorization: `Basic ${ONESIGNAL_REST_KEY}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("📢 OneSignal notification sent");
+      } catch (err) {
+        console.error("❌ OneSignal notification failed:", err.message);
+      }
+
+      // === Emit real-time order event ===
       io.emit("newOrder", {
         customer: newOrder.name,
         totalAmount: newOrder.totalAmount,
@@ -235,7 +234,6 @@ try {
         time: newOrder.createdAt,
       });
 
-      // ✅ FIXED RESPONSE FORMAT
       return res.json({
         success: true,
         message: "Payment verified successfully",
@@ -249,12 +247,6 @@ try {
     }
   } catch (err) {
     console.error("💥 Payment verification error:", err.message);
-
-    // Handle invalid or HTML response
-    if (err.response && err.response.data && typeof err.response.data === "string") {
-      console.log("💥 Raw response:", err.response.data.slice(0, 200));
-    }
-
     return res.status(500).json({
       success: false,
       message: "Error verifying payment. Please try again.",
@@ -263,8 +255,9 @@ try {
   }
 });
 
-
-// === GET ALL ORDERS (for admin) ===
+// =======================
+// ===== ORDER ROUTES =====
+// =======================
 app.get("/api/orders", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -274,31 +267,27 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-// Get single order by reference
 app.get("/api/orders/:id", async (req, res) => {
   try {
     const order = await Order.findOne({ reference: req.params.id });
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   } catch (err) {
-    console.error("Error fetching order:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: "Error fetching order", error: err });
   }
 });
 
-// Delete an order by ID
 app.delete("/api/orders/:id", async (req, res) => {
   try {
     const deletedOrder = await Order.findByIdAndDelete(req.params.id);
     if (!deletedOrder) return res.status(404).json({ message: "Order not found" });
     res.json({ message: "Order deleted successfully", deletedOrder });
-  } catch (error) {
-    console.error("Error deleting order:", error);
-    res.status(500).json({ message: "Server error deleting order" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting order", error: err });
   }
 });
 
-// Get admin stats
+// === ADMIN STATS ===
 app.get("/api/admin/stats", async (req, res) => {
   try {
     const orders = await Order.find();
@@ -306,18 +295,16 @@ app.get("/api/admin/stats", async (req, res) => {
     const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const pendingOrders = orders.filter(o => o.status === "pending").length;
     const processingOrders = orders.filter(o => o.status === "processing").length;
-    const recentOrders = orders
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
+    const recentOrders = orders.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
 
     res.json({ totalOrders, totalRevenue, pendingOrders, processingOrders, recentOrders });
-  } catch (error) {
-    console.error("Error fetching admin stats:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching stats", error: err });
   }
 });
 
-
-// === START SERVER ===
+// ======================
+// === START SERVER ====
+// ======================
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
