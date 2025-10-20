@@ -15,7 +15,7 @@ async function sendNewOrderNotification(order) {
       body: JSON.stringify({
         app_id: process.env.ONESIGNAL_APP_ID,
         headings: { en: "New Order Received 🍽️" },
-        contents: { en: `Order ${order.reference} from ${order.customerName}` },
+        contents: { en: `Order ${order.reference} from ${order.name}` },
         included_segments: ["All"],
         url: "https://restaurant-plum.vercel.app/admin-dashboard.html"
       })
