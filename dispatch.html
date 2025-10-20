@@ -223,38 +223,7 @@
     © 2025 TastyBite Restaurant. All rights reserved.
   </footer>
 
-  
-        }
-
-        const card = document.createElement("div");
-        card.className = "order-card";
-        card.innerHTML = `
-          <h3>Reference: ${order.reference}</h3>
-          <p><strong>Name:</strong> ${order.name}</p>
-          <p><strong>Phone:</strong> ${order.phone}</p>
-          <p><strong>Address:</strong> ${order.address}</p>
-          <p><strong>Total:</strong> ₦${order.totalAmount}</p>
-          <p><strong>Status:</strong> ${order.status || "Pending"}</p>
-          <h4>Items:</h4>
-          <ul>
-            ${order.items
-              .map(
-                (pack) =>
-                  Object.values(pack)
-                    .flat()
-                    .map(
-                      (item) =>
-                        `<li>${item.name} x${item.qty} - ₦${item.price}</li>`
-                    )
-                    .join("")
-              )
-              .join("")}
-          </ul>
-          <button class="deliver-btn" data-ref="${order.reference}" ${
-          order.status === "delivered" ? "disabled" : ""
-        }>${
-          order.status === "delivered" ? "✅ Delivered" : "Mark as Delivered"
-        }</button>
+         
 <script>
   const API_BASE = "https://restaurant-eqbo.onrender.com/api/orders"; // ✅ Fixed
   const UPDATE_URL = "https://restaurant-eqbo.onrender.com/api/orders/update";
