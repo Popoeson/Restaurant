@@ -70,6 +70,8 @@ const orderSchema = new mongoose.Schema({
   totalAmount: Number,
   reference: String,
   status: { type: String, default: "pending" },
+  dispatchedAt: Date,
+  deliveredAt: Date,
   createdAt: { type: Date, default: Date.now },
 });
 const Order = mongoose.model("Order", orderSchema);
@@ -278,6 +280,41 @@ app.delete("/api/orders/:id", async (req, res) => {
     res.json({ message: "Order deleted successfully", deletedOrder });
   } catch (err) {
     res.status(500).json({ message: "Error deleting order", error: err });
+  }
+});
+
+// ✅ Update Order Status Route with Timestamp
+app.patch("/api/orders/update/:reference", async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const { status } = req.body;
+
+    const updates = { status };
+
+    // Automatically add timestamps based on status
+    if (status.toLowerCase() === "delivered") {
+      updates.deliveredAt = new Date();
+    } else if (status.toLowerCase() === "dispatched") {
+      updates.dispatchedAt = new Date();
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { reference },
+      updates,
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "❌ Order not found" });
+    }
+
+    res.json({
+      message: `✅ Order ${reference} updated successfully`,
+      updatedOrder: order,
+    });
+  } catch (error) {
+    console.error("Error updating order:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
