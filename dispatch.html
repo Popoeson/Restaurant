@@ -3,224 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dispatch Orders</title>
+  <title>TastyBite | Dispatch Orders</title>
   <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #fff8f2;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    body { background-color: #fff; color: #333; overflow-x: hidden; }
 
     header {
-      background: linear-gradient(90deg, #ff7b00, #ffb347);
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 0.5px;
+      width: 100%; background: #fff; display: flex; justify-content: space-between;
+      align-items: center; padding: 15px 5%; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-size: 1.5rem; font-weight: 700; color: #ff6600; }
+    .nav-right { display: flex; align-items: center; gap: 15px; }
+    .cart-icon { font-size: 1.4rem; cursor: pointer; color: #ff6600; position: relative; }
+    .cart-count {
+      position: absolute; top: -6px; right: -10px; background: #ff5500; color: white;
+      border-radius: 50%; font-size: 0.7rem; width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: #fff;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-    }
+    main { padding: 50px 5%; text-align: center; }
+    h2 { color: #ff5500; margin-bottom: 15px; }
 
-    .input-section {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+    .order-count {
+      display: flex; justify-content: center; align-items: center;
+      gap: 15px; margin-bottom: 25px;
     }
-
-    .input-section button {
-      background: #ff7b00;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 18px;
-      cursor: pointer;
+    .order-count button {
+      background: linear-gradient(45deg, #ff8800, #ff5500); border: none; color: #fff;
+      padding: 8px 14px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
     }
-
-    .input-section button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .input-section span {
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    .order-id-inputs input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      outline: none;
+    .order-count input {
+      width: 60px; text-align: center; padding: 6px; font-size: 1rem;
+      border: 1px solid #ddd; border-radius: 6px;
     }
 
     .fetch-btn {
-      background: #ff7b00;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
-      width: 100%;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.3s;
+      background: linear-gradient(45deg, #ff8800, #ff5500); border: none; color: white;
+      padding: 10px 25px; border-radius: 25px; font-size: 1rem;
+      cursor: pointer; margin-top: 10px; transition: 0.3s;
+    }
+    .fetch-btn:hover { transform: scale(1.05); }
+    .fetch-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .order-inputs { margin-top: 30px; }
+    .order-inputs input {
+      display: block; margin: 10px auto; width: 250px; padding: 10px;
+      border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem;
     }
 
-    .fetch-btn:hover {
-      background: #e86f00;
+    .order-results {
+      margin-top: 40px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
     }
 
     .order-card {
-      background: #fff7f0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      background: #fff7f0; border-radius: 15px; padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: left;
+      animation: fadeIn 0.6s ease;
     }
+    .order-card h3 { color: #ff6600; margin-bottom: 8px; }
+    .order-card p { font-size: 0.9rem; margin-bottom: 4px; }
 
     .pack-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffe4cc;
-      color: #ff7b00;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-weight: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #ffe4cc; color: #ff7b00; padding: 10px 14px;
+      border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 500;
       transition: 0.3s;
     }
-
-    .pack-header:hover {
-      background: #ffd6b3;
-    }
-
-    .arrow {
-      transition: transform 0.3s ease;
-    }
-
-    .pack-header.open .arrow {
-      transform: rotate(180deg);
-    }
+    .pack-header:hover { background: #ffd6b3; }
+    .arrow { transition: transform 0.3s ease; }
+    .pack-header.open .arrow { transform: rotate(180deg); }
 
     .pack-items {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
       padding: 0 10px;
     }
-
     .order-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; font-size: 14px;
     }
-
     .order-item img {
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
-      object-fit: cover;
-      margin-right: 10px;
+      width: 40px; height: 40px; border-radius: 6px;
+      object-fit: cover; margin-right: 10px;
     }
-
-    .item-details {
-      display: flex;
-      align-items: center;
-      flex: 1;
-    }
-
+    .item-details { display: flex; align-items: center; flex: 1; }
     .order-total {
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      font-weight: bold;
-      text-align: right;
-      color: #ff7b00;
-      margin-top: 10px;
+      border-top: 1px solid #ccc; padding-top: 10px; font-weight: bold;
+      text-align: right; color: #ff7b00; margin-top: 10px;
     }
 
     .deliver-btn {
-      background: #28a745;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      width: 100%;
-      font-size: 15px;
-      margin-top: 10px;
-      cursor: pointer;
+      width: 100%; margin-top: 15px;
+      background: linear-gradient(45deg, #28a745, #34ce57);
+      color: white; border: none; border-radius: 20px;
+      padding: 10px; font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: 0.3s;
+    }
+    .deliver-btn:hover { transform: scale(1.05); }
+    .deliver-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    #toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 10px 20px;
+      border-radius: 25px; display: none; z-index: 1000;
     }
 
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease, transform 0.3s ease;
+    footer {
+      text-align: center; padding: 20px; background: #fff3e6;
+      margin-top: 50px; font-size: 0.9rem;
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <header>Order Dispatch</header>
+  <header>
+    <div class="logo">TastyBite</div>
+    <div class="nav-right">
+      <div class="cart-icon">🛒<span class="cart-count">0</span></div>
+    </div>
+  </header>
 
-  <div class="container">
-    <div class="input-section">
+  <main>
+    <h2>Dispatch Orders</h2>
+    <p>Enter order references to fetch and mark as delivered.</p>
+
+    <div class="order-count">
       <button id="decreaseBtn">−</button>
       <span id="orderCount">1</span>
       <button id="increaseBtn">+</button>
     </div>
 
-    <div class="order-id-inputs" id="orderIdInputs"></div>
+    <div class="order-inputs" id="orderIdInputs"></div>
+    <button class="fetch-btn" id="fetchBtn">Fetch Orders</button>
 
-    <button class="fetch-btn" id="fetchBtn">Fetch Order</button>
+    <div class="order-results" id="ordersContainer"></div>
+  </main>
 
-    <div id="ordersContainer"></div>
-  </div>
-
-  <div id="toast" class="toast"></div>
+  <footer>© 2025 TastyBite Restaurant. All rights reserved.</footer>
+  <div id="toast"></div>
 
   <script>
     const BASE_URL = "https://restaurant-eqbo.onrender.com/api/orders";
     const UPDATE_URL = `${BASE_URL}/update`;
-
     const orderIdInputs = document.getElementById("orderIdInputs");
     const orderCountDisplay = document.getElementById("orderCount");
     const fetchBtn = document.getElementById("fetchBtn");
     const ordersContainer = document.getElementById("ordersContainer");
     const toast = document.getElementById("toast");
+    const cartCountEl = document.querySelector(".cart-count");
 
+    cartCountEl.textContent = localStorage.getItem("cartCount") || 0;
     let orderCount = 1;
 
     const renderInputs = () => {
@@ -233,11 +171,11 @@
       }
     };
 
-    const showToast = (message, bg = "#333") => {
-      toast.textContent = message;
-      toast.style.background = bg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 3000);
+    const showToast = (msg, color="#333") => {
+      toast.textContent = msg;
+      toast.style.background = color;
+      toast.style.display = "block";
+      setTimeout(() => toast.style.display = "none", 2500);
     };
 
     document.getElementById("increaseBtn").onclick = () => {
@@ -261,7 +199,7 @@
         .map(i => i.value.trim())
         .filter(Boolean);
 
-      if (refs.length === 0) return alert("Please enter at least one order reference.");
+      if (!refs.length) return showToast("Enter at least one order reference!", "#e74c3c");
 
       ordersContainer.innerHTML = "";
       fetchBtn.textContent = "Fetching...";
@@ -273,8 +211,7 @@
           const data = await res.json();
 
           if (!res.ok) {
-            const msg = data.message || "Order not found!";
-            ordersContainer.innerHTML += `<div class='order-card'><p>❌ ${msg} (${ref})</p></div>`;
+            ordersContainer.innerHTML += `<div class='order-card'><p>❌ ${data.message || "Order not found"} (${ref})</p></div>`;
             continue;
           }
 
@@ -288,12 +225,11 @@
             <p><strong>Address:</strong> ${order.address}, ${order.junction}</p>
             <div id="packs-${order.reference}"></div>
             <div class="order-total">Total: ₦${order.totalAmount.toLocaleString()}</div>
-            <button class="deliver-btn">Mark as Delivered</button>
+            <button class="deliver-btn">${order.status === "delivered" ? "✅ Delivered" : "Mark as Delivered"}</button>
           `;
           ordersContainer.appendChild(card);
 
           const packContainer = card.querySelector(`#packs-${order.reference}`);
-
           order.items.forEach(pack => {
             const packName = Object.keys(pack)[0];
             const packDiv = document.createElement("div");
@@ -337,37 +273,33 @@
 
           const btn = card.querySelector(".deliver-btn");
           btn.onclick = async () => {
-            const reference = order.reference;
             btn.textContent = "Updating...";
             btn.disabled = true;
-
             try {
-              const res = await fetch(`${UPDATE_URL}/${reference}`, {
+              const res = await fetch(`${UPDATE_URL}/${order.reference}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: "delivered" }),
               });
-
               const data = await res.json();
               if (res.ok) {
                 btn.textContent = "✅ Delivered";
-                showToast(`Order ${reference} marked as delivered!`, "#28a745");
+                showToast(`Order ${order.reference} marked as delivered!`, "#28a745");
               } else {
-                throw new Error(data.message || "Update failed");
+                throw new Error(data.message);
               }
-            } catch (err) {
-              btn.textContent = "Failed";
+            } catch {
+              btn.textContent = "Mark as Delivered";
               btn.disabled = false;
               showToast("Error updating order!", "#e74c3c");
             }
           };
-        } catch (err) {
-          console.error(err);
+        } catch {
           ordersContainer.innerHTML += `<div class='order-card'><p>❌ Error fetching ${ref}</p></div>`;
         }
       }
 
-      fetchBtn.textContent = "Fetch Order";
+      fetchBtn.textContent = "Fetch Orders";
       fetchBtn.disabled = false;
     };
   </script>
