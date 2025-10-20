@@ -197,34 +197,42 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   document.head.appendChild(socketScript);
 
-  // ---------- OneSignal ----------
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
+// ---------- OneSignal ----------
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
     OneSignal.init({
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-      safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
-      notifyButton: { enable: true },      // Show bell
-      allowLocalhostAsSecureOrigin: true,
-      welcomeNotification: {               // Optional welcome notification
-        "title": "Welcome!",
-        "message": "You will receive notifications for new orders."
-      },
+        appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+        safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
+        notifyButton: { enable: true }, // Show bell
+        allowLocalhostAsSecureOrigin: true,
+        welcomeNotification: {
+            "title": "Welcome!",
+            "message": "You will receive notifications for new orders."
+        }
     });
 
-    // Show the subscription prompt automatically
-    OneSignal.showSlidedownPrompt();
-
-    // Check subscription status
+    // Check if user is already subscribed
     OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-      console.log("Push Notifications Enabled:", isEnabled);
-      if (!isEnabled) {
-        console.log("User has not subscribed yet.");
-      }
+        console.log("✅ Push Notifications Enabled:", isEnabled);
+        if (!isEnabled) {
+            console.log("User is not subscribed. Showing prompt...");
+            // Force the subscription prompt
+            OneSignal.showSlidedownPrompt();
+        }
+    });
+
+    // Log the OneSignal User ID
+    OneSignal.getUserId(function(userId) {
+        if (userId) {
+            console.log("🆔 OneSignal User ID:", userId);
+        } else {
+            console.log("⚠️ No OneSignal User ID yet. User not subscribed.");
+        }
     });
 
     // Optional: set default notification click URL
     OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
-  });
+});
 
   // ---------- Sidebar Toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
