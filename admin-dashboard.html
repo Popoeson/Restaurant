@@ -127,21 +127,21 @@
 <!-- Popup Notification -->
 <div id="popupNotification">New order received!</div>
 
-<script>  
-document.addEventListener("DOMContentLoaded", () => {  
-  const backendURL = "https://restaurant-eqbo.onrender.com";  
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const backendURL = "https://restaurant-eqbo.onrender.com";
 
-  // ----------- SOCKET.IO ----------
-  const socketScript = document.createElement("script");  
-  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.8.1/dist/socket.io.min.js";  
-  socketScript.onload = () => {  
-    if (typeof io !== "undefined") {  
-      const socket = io(backendURL, { transports: ["websocket"] });  
+  // ---------- SOCKET.IO ----------
+  const socketScript = document.createElement("script");
+  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io@4.8.1/dist/socket.io.min.js";
+  socketScript.onload = () => {
+    if (typeof io !== "undefined") {
+      const socket = io(backendURL, { transports: ["websocket"] });
 
-      socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));  
-      socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));  
+      socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
+      socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
 
-      // -------- Notification Bell Logic --------
+      // Notification Bell Logic
       const notifIcon = document.getElementById("notifIcon");
       const savedCount = localStorage.getItem("orderNotifCount");
       notifIcon.setAttribute("data-count", savedCount || 0);
@@ -171,24 +171,24 @@ document.addEventListener("DOMContentLoaded", () => {
         incrementNotification();
         showPopup("New order received!");
 
-        const ordersCountEl = document.getElementById("ordersCount");  
-        const pendingOrdersEl = document.getElementById("pendingOrders");  
-        const processingOrdersEl = document.getElementById("processingOrders");  
-        const revenueEl = document.getElementById("revenue");  
+        const ordersCountEl = document.getElementById("ordersCount");
+        const pendingOrdersEl = document.getElementById("pendingOrders");
+        const processingOrdersEl = document.getElementById("processingOrders");
+        const revenueEl = document.getElementById("revenue");
 
-        ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;  
-        pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);  
-        processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);  
+        ordersCountEl.textContent = parseInt(ordersCountEl.textContent) + 1;
+        pendingOrdersEl.textContent = parseInt(pendingOrdersEl.textContent) + (order.status === "pending" ? 1 : 0);
+        processingOrdersEl.textContent = parseInt(processingOrdersEl.textContent) + (order.status === "processing" ? 1 : 0);
         revenueEl.textContent = `₦${(parseInt(revenueEl.textContent.replace(/₦|,/g,"")) + order.totalAmount).toLocaleString()}`;
 
-        const tbody = document.querySelector("#recentOrdersTable tbody");  
-        const tr = document.createElement("tr");  
+        const tbody = document.querySelector("#recentOrdersTable tbody");
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${order.reference}</td>  
-          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>  
-          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>  
-          <td>₦${order.totalAmount.toLocaleString()}</td>  
-        `;  
+          <td>${order.reference}</td>
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+          <td>₦${order.totalAmount.toLocaleString()}</td>
+        `;
         tbody.prepend(tr);
       });
     } else {
@@ -203,38 +203,55 @@ document.addEventListener("DOMContentLoaded", () => {
     OneSignal.init({
       appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
       safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
-      notifyButton: { enable: true },
+      notifyButton: { enable: true },      // Show bell
       allowLocalhostAsSecureOrigin: true,
+      welcomeNotification: {               // Optional welcome notification
+        "title": "Welcome!",
+        "message": "You will receive notifications for new orders."
+      },
     });
+
+    // Show the subscription prompt automatically
+    OneSignal.showSlidedownPrompt();
+
+    // Check subscription status
+    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+      console.log("Push Notifications Enabled:", isEnabled);
+      if (!isEnabled) {
+        console.log("User has not subscribed yet.");
+      }
+    });
+
+    // Optional: set default notification click URL
     OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
   });
 
   // ---------- Sidebar Toggle ----------
-  document.getElementById("toggleMenu").addEventListener("click", () => {  
-    document.getElementById("sidebar").classList.toggle("active");  
-  });  
+  document.getElementById("toggleMenu").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("active");
+  });
 
   // ---------- Load Dashboard Data ----------
-  async function loadDashboardData() {  
-    try {  
-      const res = await fetch(`${backendURL}/api/admin/stats`);  
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
-      const data = await res.json();  
+  async function loadDashboardData() {
+    try {
+      const res = await fetch(`${backendURL}/api/admin/stats`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
 
-      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;  
-      document.getElementById("ordersCount").textContent = data.totalOrders;  
-      document.getElementById("pendingOrders").textContent = data.pendingOrders;  
-      document.getElementById("processingOrders").textContent = data.processingOrders;  
+      document.getElementById("revenue").textContent = `₦${data.totalRevenue.toLocaleString()}`;
+      document.getElementById("ordersCount").textContent = data.totalOrders;
+      document.getElementById("pendingOrders").textContent = data.pendingOrders;
+      document.getElementById("processingOrders").textContent = data.processingOrders;
 
-      const tbody = document.querySelector("#recentOrdersTable tbody");  
-      tbody.innerHTML = "";  
-      data.recentOrders.forEach((order) => {  
-        const tr = document.createElement("tr");  
+      const tbody = document.querySelector("#recentOrdersTable tbody");
+      tbody.innerHTML = "";
+      data.recentOrders.forEach((order) => {
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${order.reference}</td>
-          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>  
-          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>  
-          <td>₦${order.totalAmount.toLocaleString()}</td>  
+          <td>${new Date(order.createdAt).toISOString().split("T")[0]}</td>
+          <td><span style="color:${order.status === "delivered" ? "green" : order.status === "processing" ? "orange" : "gray"};font-weight:600;">${order.status}</span></td>
+          <td>₦${order.totalAmount.toLocaleString()}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -245,6 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadDashboardData();
 });
-</script>  
+</script>
 </body>  
   </html>
