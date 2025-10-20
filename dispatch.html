@@ -5,203 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TastyBite | Dispatch Orders</title>
   <style>
-    /* ---------- GLOBAL STYLES ---------- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
-
-    body {
-      background-color: #fff;
-      color: #333;
-      overflow-x: hidden;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    body { background-color: #fff; color: #333; overflow-x: hidden; }
 
     header {
-      width: 100%;
-      background: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 5%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      width: 100%; background: #fff; display: flex; justify-content: space-between;
+      align-items: center; padding: 15px 5%; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      position: sticky; top: 0; z-index: 100;
     }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #ff6600;
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .cart-icon {
-      font-size: 1.4rem;
-      cursor: pointer;
-      color: #ff6600;
-      position: relative;
-    }
-
+    .logo { font-size: 1.5rem; font-weight: 700; color: #ff6600; }
+    .nav-right { display: flex; align-items: center; gap: 15px; }
+    .cart-icon { font-size: 1.4rem; cursor: pointer; color: #ff6600; position: relative; }
     .cart-count {
-      position: absolute;
-      top: -6px;
-      right: -10px;
-      background: #ff5500;
-      color: white;
-      border-radius: 50%;
-      font-size: 0.7rem;
-      width: 16px;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: absolute; top: -6px; right: -10px; background: #ff5500; color: white;
+      border-radius: 50%; font-size: 0.7rem; width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* ---------- MAIN CONTENT ---------- */
-    main {
-      padding: 50px 5%;
-      text-align: center;
-    }
-
-    h2 {
-      color: #ff5500;
-      margin-bottom: 15px;
-    }
+    main { padding: 50px 5%; text-align: center; }
+    h2 { color: #ff5500; margin-bottom: 15px; }
 
     .order-count {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 25px;
+      display: flex; justify-content: center; align-items: center;
+      gap: 15px; margin-bottom: 25px;
     }
-
     .order-count button {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      border: none;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 50%;
-      font-size: 1.2rem;
-      cursor: pointer;
+      background: linear-gradient(45deg, #ff8800, #ff5500); border: none; color: #fff;
+      padding: 8px 14px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
     }
-
     .order-count input {
-      width: 60px;
-      text-align: center;
-      padding: 6px;
-      font-size: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      width: 60px; text-align: center; padding: 6px; font-size: 1rem;
+      border: 1px solid #ddd; border-radius: 6px;
     }
 
-    .proceed-btn {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      border: none;
-      color: white;
-      padding: 10px 25px;
-      border-radius: 25px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 10px;
+    .proceed-btn, .fetch-btn {
+      background: linear-gradient(45deg, #ff8800, #ff5500); border: none; color: white;
+      padding: 10px 25px; border-radius: 25px; font-size: 1rem;
+      cursor: pointer; margin-top: 10px; transition: 0.3s;
     }
+    .proceed-btn:hover, .fetch-btn:hover { transform: scale(1.05); }
+    .fetch-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-    .proceed-btn:hover {
-      transform: scale(1.05);
-    }
-
-    .order-inputs {
-      margin-top: 30px;
-    }
-
+    .order-inputs { margin-top: 30px; }
     .order-inputs input {
-      display: block;
-      margin: 10px auto;
-      width: 250px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      display: block; margin: 10px auto; width: 250px; padding: 8px;
+      border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem;
     }
 
-    .fetch-btn {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-
-    .fetch-btn:hover {
-      transform: scale(1.05);
-    }
-
-    /* ---------- RESULTS ---------- */
     .order-results {
       margin-top: 40px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
     }
 
+    /* ---------- CARD + COLLAPSIBLE STYLING ---------- */
     .order-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-      padding: 20px;
-      text-align: left;
+      background: #fff7f0; border-radius: 15px; padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: left;
+      animation: fadeIn 0.6s ease;
     }
+    .order-card h3 { color: #ff6600; margin-bottom: 8px; }
+    .order-card p { font-size: 0.9rem; margin-bottom: 4px; }
 
-    .order-card h3 {
-      color: #ff5500;
-      margin-bottom: 10px;
+    .pack-header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #ffe4cc; color: #ff7b00; padding: 10px 14px;
+      border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: 500;
+      transition: 0.3s;
     }
+    .pack-header:hover { background: #ffd6b3; }
+    .arrow { transition: transform 0.3s ease; }
+    .pack-header.open .arrow { transform: rotate(180deg); }
 
-    .order-card ul {
-      list-style: none;
-      padding-left: 10px;
+    .pack-items {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      padding: 0 10px;
     }
-
-    .order-card li {
-      font-size: 0.9rem;
-      margin-bottom: 5px;
+    .order-item {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; font-size: 14px;
+    }
+    .order-item img {
+      width: 40px; height: 40px; border-radius: 6px;
+      object-fit: cover; margin-right: 10px;
+    }
+    .item-details { display: flex; align-items: center; flex: 1; }
+    .order-total {
+      border-top: 1px solid #ccc; padding-top: 10px; font-weight: bold;
+      text-align: right; color: #ff7b00; margin-top: 10px;
     }
 
     .deliver-btn {
-      background: linear-gradient(45deg, #ff8800, #ff5500);
-      border: none;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      margin-top: 10px;
+      width: 100%; margin-top: 15px;
+      background: linear-gradient(45deg, #28a745, #34ce57);
+      color: white; border: none; border-radius: 20px;
+      padding: 10px; font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: 0.3s;
     }
+    .deliver-btn:hover { transform: scale(1.05); }
+    .deliver-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-    .deliver-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    #toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 10px 20px;
+      border-radius: 25px; display: none; z-index: 1000;
+    }
+    footer {
+      text-align: center; padding: 20px; background: #fff3e6;
+      margin-top: 50px; font-size: 0.9rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header>
     <div class="logo">TastyBite</div>
+    <div class="nav-right">
+      <div class="cart-icon">🛒<span class="cart-count">0</span></div>
+    </div>
   </header>
 
-  <!-- MAIN CONTENT -->
   <main>
     <h2>Dispatch Orders</h2>
     <p>Enter how many orders are ready to dispatch.</p>
@@ -215,202 +141,148 @@
     <button class="proceed-btn" id="proceedBtn">Proceed</button>
 
     <div class="order-inputs" id="orderInputs"></div>
-
     <div class="order-results" id="orderResults"></div>
   </main>
 
-  <footer style="text-align:center;padding:20px;background:#fff3e6;margin-top:50px;">
-    © 2025 TastyBite Restaurant. All rights reserved.
-  </footer>
+  <footer>© 2025 TastyBite Restaurant. All rights reserved.</footer>
+  <div id="toast"></div>
 
-         
-<script>
-  const API_BASE = "https://restaurant-eqbo.onrender.com/api/orders"; // ✅ Fixed
-  const UPDATE_URL = "https://restaurant-eqbo.onrender.com/api/orders/update";
+  <script>
+    const API_BASE = "https://restaurant-eqbo.onrender.com/api/orders";
+    const UPDATE_URL = "https://restaurant-eqbo.onrender.com/api/orders/update";
 
-  const decreaseBtn = document.getElementById("decrease");
-  const increaseBtn = document.getElementById("increase");
-  const orderCountInput = document.getElementById("orderCount");
-  const proceedBtn = document.getElementById("proceedBtn");
-  const orderInputs = document.getElementById("orderInputs");
-  const orderResults = document.getElementById("orderResults");
+    const orderCountEl = document.getElementById("orderCount");
+    const decreaseBtn = document.getElementById("decrease");
+    const increaseBtn = document.getElementById("increase");
+    const proceedBtn = document.getElementById("proceedBtn");
+    const orderInputs = document.getElementById("orderInputs");
+    const orderResults = document.getElementById("orderResults");
+    const toast = document.getElementById("toast");
+    const cartCountEl = document.querySelector(".cart-count");
 
-  // ✅ Toast notification setup
-  const toast = document.createElement("div");
-  toast.style.position = "fixed";
-  toast.style.top = "20px";
-  toast.style.left = "50%";
-  toast.style.transform = "translateX(-50%)";
-  toast.style.padding = "10px 20px";
-  toast.style.borderRadius = "25px";
-  toast.style.fontWeight = "500";
-  toast.style.color = "#fff";
-  toast.style.zIndex = "9999";
-  toast.style.display = "none";
-  document.body.appendChild(toast);
+    // persistent cart count
+    cartCountEl.textContent = localStorage.getItem("cartCount") || 0;
 
-  function showToast(message, success = true) {
-    toast.textContent = message;
-    toast.style.background = success
-      ? "linear-gradient(45deg, #28a745, #4cd964)"
-      : "linear-gradient(45deg, #ff4d4d, #ff0000)";
-    toast.style.display = "block";
-    toast.style.opacity = "1";
-    toast.style.transition = "opacity 0.5s ease";
+    decreaseBtn.onclick = () => { if (orderCountEl.value > 1) orderCountEl.value--; };
+    increaseBtn.onclick = () => orderCountEl.value++;
 
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      setTimeout(() => (toast.style.display = "none"), 500);
-    }, 2500);
-  }
-
-  // ✅ Persistent cart count
-  const cartCountEl = document.querySelector(".cart-count");
-  const savedCount = localStorage.getItem("cartCount") || 0;
-  cartCountEl.textContent = savedCount;
-
-  document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("add-to-cart")) {
-      let count = parseInt(localStorage.getItem("cartCount") || 0) + 1;
-      localStorage.setItem("cartCount", count);
-      cartCountEl.textContent = count;
-    }
-  });
-
-  // ✅ Quantity controls
-  decreaseBtn.addEventListener("click", () => {
-    if (orderCountInput.value > 1) orderCountInput.value--;
-  });
-
-  increaseBtn.addEventListener("click", () => {
-    orderCountInput.value++;
-  });
-
-  // ✅ Generate order input fields
-  proceedBtn.addEventListener("click", () => {
-    const count = parseInt(orderCountInput.value);
-    orderInputs.innerHTML = "";
-    orderResults.innerHTML = "";
-
-    for (let i = 1; i <= count; i++) {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = `Enter Order Reference ${i}`;
-      input.classList.add("order-ref-field");
-      orderInputs.appendChild(input);
+    function showToast(msg, color="#333") {
+      toast.textContent = msg;
+      toast.style.background = color;
+      toast.style.display = "block";
+      setTimeout(() => toast.style.display = "none", 2500);
     }
 
-    const fetchBtn = document.createElement("button");
-    fetchBtn.textContent = "Fetch Orders";
-    fetchBtn.className = "fetch-btn";
-    fetchBtn.addEventListener("click", () => fetchOrders(fetchBtn));
-    orderInputs.appendChild(fetchBtn);
-  });
+    proceedBtn.onclick = () => {
+      const count = parseInt(orderCountEl.value);
+      orderInputs.innerHTML = "";
+      orderResults.innerHTML = "";
+      for (let i=1; i<=count; i++) {
+        orderInputs.innerHTML += `<input type="text" placeholder="Enter Order Reference ${i}" class="orderRefInput" />`;
+      }
+      orderInputs.innerHTML += `<button class="fetch-btn" id="fetchOrdersBtn">Fetch Orders</button>`;
+      attachFetchHandler();
+    };
 
-  // ✅ Fetch orders from backend
-  async function fetchOrders(fetchBtn) {
-    const refs = Array.from(document.querySelectorAll(".order-ref-field")).map(
-      (input) => input.value.trim()
-    );
+    function attachFetchHandler() {
+      const fetchBtn = document.getElementById("fetchOrdersBtn");
+      fetchBtn.onclick = async () => {
+        const refs = Array.from(document.querySelectorAll(".orderRefInput")).map(i=>i.value.trim()).filter(Boolean);
+        if (!refs.length) return showToast("Please enter at least one order reference!", "#e74c3c");
 
-    if (!refs.some((r) => r)) {
-      alert("Please enter at least one order reference.");
-      return;
-    }
+        fetchBtn.textContent = "Fetching...";
+        fetchBtn.disabled = true;
+        orderResults.innerHTML = "";
 
-    fetchBtn.textContent = "Fetching...";
-    fetchBtn.disabled = true;
-    orderResults.innerHTML = "";
+        for (const ref of refs) {
+          try {
+            const res = await fetch(`${API_BASE}/${ref}`);
+            const order = await res.json();
 
-    for (const ref of refs) {
-      if (!ref) continue;
+            if (!res.ok || !order.reference) {
+              orderResults.innerHTML += `<p style="color:red;">❌ Order not found: ${ref}</p>`;
+              continue;
+            }
 
-      try {
-        const res = await fetch(`${API_BASE}/${ref}`);
-        if (!res.ok) throw new Error(`Order not found: ${ref}`);
+            const card = document.createElement("div");
+            card.className = "order-card";
 
-        const data = await res.json();
+            // build collapsible summary
+            let packsHTML = "";
+            order.items.forEach(packObj => {
+              Object.entries(packObj).forEach(([packName, items]) => {
+                const packItems = items.map(item => `
+                  <div class="order-item">
+                    <div class="item-details">
+                      <img src="${item.img}" alt="${item.name}" />
+                      <span>${item.name} (x${item.qty})</span>
+                    </div>
+                    <span>₦${(item.price * item.qty).toLocaleString()}</span>
+                  </div>
+                `).join("");
 
-        // Handle invalid JSON or wrong responses
-        if (!data || typeof data !== "object" || !data.reference) {
-          orderResults.innerHTML += `<p style="color:red;">❌ Invalid response for ${ref}</p>`;
-          continue;
+                packsHTML += `
+                  <div class="pack">
+                    <div class="pack-header"><span>${packName}</span><span class="arrow">▼</span></div>
+                    <div class="pack-items">${packItems}</div>
+                  </div>`;
+              });
+            });
+
+            card.innerHTML = `
+              <h3>Reference: ${order.reference}</h3>
+              <p><strong>Name:</strong> ${order.name}</p>
+              <p><strong>Phone:</strong> ${order.phone}</p>
+              <p><strong>Address:</strong> ${order.address}</p>
+              ${packsHTML}
+              <div class="order-total">Total: ₦${order.totalAmount.toLocaleString()}</div>
+              <button class="deliver-btn" data-id="${order._id}" ${order.status==="delivered"?"disabled":""}>
+                ${order.status==="delivered"?"✅ Delivered":"Mark as Delivered"}
+              </button>
+            `;
+            orderResults.appendChild(card);
+
+            // collapse logic
+            card.querySelectorAll(".pack-header").forEach(header=>{
+              const content = header.nextElementSibling;
+              header.addEventListener("click", ()=>{
+                const open = header.classList.toggle("open");
+                content.style.maxHeight = open ? content.scrollHeight + "px" : "0";
+                content.style.padding = open ? "10px" : "0 10px";
+              });
+            });
+          } catch {
+            showToast(`Error fetching order ${ref}`, "#e74c3c");
+          }
         }
 
-        const card = document.createElement("div");
-        card.className = "order-card";
-        card.innerHTML = `
-          <h3>Reference: ${data.reference}</h3>
-          <p><strong>Name:</strong> ${data.name}</p>
-          <p><strong>Phone:</strong> ${data.phone}</p>
-          <p><strong>Address:</strong> ${data.address}</p>
-          <p><strong>Total:</strong> ₦${data.totalAmount}</p>
-          <p><strong>Status:</strong> ${data.status || "Pending"}</p>
-          <h4>Items:</h4>
-          <ul>
-            ${data.items
-              .map((pack) =>
-                Object.values(pack)
-                  .flat()
-                  .map(
-                    (item) =>
-                      `<li>${item.name} x${item.qty} - ₦${item.price}</li>`
-                  )
-                  .join("")
-              )
-              .join("")}
-          </ul>
-          <button class="deliver-btn" data-ref="${data.reference}" ${
-          data.status === "delivered" ? "disabled" : ""
-        }>${
-          data.status === "delivered" ? "✅ Delivered" : "Mark as Delivered"
-        }</button>
-        `;
-        orderResults.appendChild(card);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        orderResults.innerHTML += `<p style="color:red;">❌ ${err.message}</p>`;
-      }
+        fetchBtn.textContent = "Fetch Orders";
+        fetchBtn.disabled = false;
+
+        document.querySelectorAll(".deliver-btn").forEach(btn=>{
+          btn.onclick = async () => {
+            const id = btn.dataset.id;
+            btn.textContent = "Updating...";
+            btn.disabled = true;
+            try {
+              const res = await fetch(`${UPDATE_URL}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "delivered" }),
+              });
+              if (res.ok) {
+                btn.textContent = "✅ Delivered";
+                showToast("Order marked as delivered!", "#28a745");
+              } else throw new Error();
+            } catch {
+              btn.textContent = "Failed";
+              btn.disabled = false;
+              showToast("Error updating order!", "#e74c3c");
+            }
+          };
+        });
+      };
     }
-
-    fetchBtn.textContent = "Fetch Orders";
-    fetchBtn.disabled = false;
-
-    // Rebind delivery buttons
-    document.querySelectorAll(".deliver-btn").forEach((btn) => {
-      btn.addEventListener("click", markDelivered);
-    });
-  }
-
-  // ✅ Mark order as delivered
-  async function markDelivered(e) {
-    const ref = e.target.dataset.ref;
-    e.target.textContent = "Updating...";
-    e.target.disabled = true;
-
-    try {
-      const res = await fetch(`${UPDATE_URL}/${ref}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "delivered" }),
-      });
-
-      if (res.ok) {
-        e.target.textContent = "✅ Delivered";
-        e.target.disabled = true;
-        showToast(`Order ${ref} marked as delivered!`);
-      } else {
-        e.target.textContent = "Failed";
-        e.target.disabled = false;
-        showToast("Failed to update order.", false);
-      }
-    } catch (err) {
-      console.error(err);
-      e.target.textContent = "Error";
-      e.target.disabled = false;
-      showToast("Error connecting to server.", false);
-    }
-  }
   </script>
 </body>
-  </html>
+                                                   </html>
