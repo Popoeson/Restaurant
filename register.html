@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Registration | Restaurant System</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(to right, #fff8f2, #fff2e0);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .register-container {
+      background: #fff;
+      width: 95%;
+      max-width: 400px;
+      padding: 30px 25px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff7b00;
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      outline: none;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    input:focus, select:focus {
+      border-color: #ff7b00;
+      box-shadow: 0 0 5px rgba(255, 123, 0, 0.3);
+    }
+
+    .password-group {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #777;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    button {
+      background: #ff7b00;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #e76f00;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .message.success {
+      color: green;
+    }
+
+    .message.error {
+      color: red;
+    }
+
+    .login-link {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .login-link a {
+      color: #ff7b00;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      background: #ff7b00;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>Restaurant Management</header>
+
+  <div class="register-container">
+    <h1>Register</h1>
+
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="text" id="username" placeholder="Username" required />
+
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="dispatcher">Dispatcher</option>
+      </select>
+
+      <div class="password-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <span class="toggle-password" onclick="togglePassword('password')">Show</span>
+      </div>
+
+      <div class="password-group">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+        <span class="toggle-password" onclick="togglePassword('confirmPassword')">Show</span>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <div class="login-link">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
+
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    const backendURL = "https://restaurant-eqbo.onrender.com";
+
+    function togglePassword(id) {
+      const field = document.getElementById(id);
+      const toggle = field.nextElementSibling;
+      if (field.type === "password") {
+        field.type = "text";
+        toggle.textContent = "Hide";
+      } else {
+        field.type = "password";
+        toggle.textContent = "Show";
+      }
+    }
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const role = document.getElementById("role").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const messageBox = document.getElementById("message");
+
+      if (!name || !username || !role || !password || !confirmPassword) {
+        messageBox.textContent = "Please fill in all fields.";
+        messageBox.className = "message error";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        messageBox.textContent = "Passwords do not match.";
+        messageBox.className = "message error";
+        return;
+      }
+
+      messageBox.textContent = "Registering...";
+      messageBox.className = "message";
+
+      try {
+        const res = await fetch(`${backendURL}/api/users/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, username, role, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          messageBox.textContent = "✅ Registration successful!";
+          messageBox.className = "message success";
+          document.getElementById("registerForm").reset();
+
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+        } else {
+          messageBox.textContent = data.message || "Registration failed.";
+          messageBox.className = "message error";
+        }
+      } catch (error) {
+        console.error(error);
+        messageBox.textContent = "Error connecting to server.";
+        messageBox.className = "message error";
+      }
+    });
+  </script>
+</body>
+</html>
