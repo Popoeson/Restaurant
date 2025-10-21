@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Login | Restaurant System</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(to right, #fff8f2, #fff2e0);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .login-container {
+      background: #fff;
+      width: 95%;
+      max-width: 400px;
+      padding: 30px 25px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff7b00;
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+    
+    h2 {
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #ff7b00;
+    }
+
+    p.subtitle {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      outline: none;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #ff7b00;
+      box-shadow: 0 0 5px rgba(255, 123, 0, 0.3);
+    }
+
+    .password-group {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #777;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    button {
+      background: #ff7b00;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #e76f00;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .message.success {
+      color: green;
+    }
+
+    .message.error {
+      color: red;
+    }
+
+    .register-link {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .register-link a {
+      color: #ff7b00;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      background: #ff7b00;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>Restaurant Management</header>
+
+  <div class="login-container">
+    
+    <h2>Welcome Back 👋</h2>
+    <p class="subtitle">Login to continue</p>
+
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+
+      <div class="password-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <span class="toggle-password" onclick="togglePassword('password')">Show</span>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="register-link">
+      Don’t have an account? <a href="register.html">Register</a>
+    </div>
+
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    const backendURL = "https://restaurant-eqbo.onrender.com";
+
+    function togglePassword(id) {
+      const field = document.getElementById(id);
+      const toggle = field.nextElementSibling;
+      if (field.type === "password") {
+        field.type = "text";
+        toggle.textContent = "Hide";
+      } else {
+        field.type = "password";
+        toggle.textContent = "Show";
+      }
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const messageBox = document.getElementById("message");
+
+      if (!username || !password) {
+        messageBox.textContent = "Please fill in all fields.";
+        messageBox.className = "message error";
+        return;
+      }
+
+      messageBox.textContent = "Logging in...";
+      messageBox.className = "message";
+
+      try {
+        const res = await fetch(`${backendURL}/api/users/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          messageBox.textContent = "✅ Login successful!";
+          messageBox.className = "message success";
+
+          localStorage.setItem("user", JSON.stringify(data.user));
+
+          setTimeout(() => {
+            if (data.user.role === "admin") {
+              window.location.href = "admin-dashboard.html";
+            } else if (data.user.role === "dispatcher") {
+              window.location.href = "dispatch.html";
+            }
+          }, 1200);
+        } else {
+          messageBox.textContent = data.message || "Invalid username or password.";
+          messageBox.className = "message error";
+        }
+      } catch (error) {
+        console.error(error);
+        messageBox.textContent = "Error connecting to server.";
+        messageBox.className = "message error";
+      }
+    });
+  </script>
+</body>
+</html>
