@@ -48,7 +48,11 @@ const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
 const ONESIGNAL_REST_KEY = process.env.ONESIGNAL_REST_KEY;
 
+//======================
 // ====== SCHEMAS ======
+//=======================
+
+// =====Menu Schema ========
 const menuSchema = new mongoose.Schema({
   name: String,
   description: String,
@@ -60,6 +64,7 @@ const menuSchema = new mongoose.Schema({
 });
 const Menu = mongoose.model("Menu", menuSchema);
 
+//====== Order Schema ============
 const orderSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -75,6 +80,33 @@ const orderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 const Order = mongoose.model("Order", orderSchema);
+
+//===== User Schema ======
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
+  role: {
+    type: String,
+    enum: ["admin", "dispatcher"],
+    default: "dispatcher",
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+}, { timestamps: true });
+
+const User = mongoose.model("User", userSchema);
+
 
 // === SOCKET.IO ===
 io.on("connection", (socket) => {
@@ -314,6 +346,71 @@ app.patch("/api/orders/update/:reference", async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating order:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+
+// =======================
+// ===== USERR ROUTES =====
+// =======================
+
+// ========REGISTER USER======
+app.post("/api/users/register", async (req, res) => {
+  try {
+    const { name, username, role, password } = req.body;
+
+    if (!name || !username || !role || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    const user = new User({ name, username, role, password });
+    await user.save();
+
+    res.json({ message: "User registered successfully", user });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ===== USER LOGIN ROUTE =====
+app.post("/api/users/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Find the user by username
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Compare password (plain text for now)
+    if (user.password !== password) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Successful login
+    res.json({
+      message: "✅ Login successful",
+      user: {
+        name: user.name,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
