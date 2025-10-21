@@ -39,11 +39,11 @@
     }
     
     .pack-card.active-pack {
-  transform: scale(1.05);
-  border: 2px solid #ff6600;
-  box-shadow: 0 4px 16px rgba(255,102,0,0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+      transform: scale(1.05);
+      border: 2px solid #ff6600;
+      box-shadow: 0 4px 16px rgba(255,102,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
 
     .cart-item img { width:80px; height:70px; border-radius:8px; object-fit:cover; }
     .item-info { display:flex; gap:10px; align-items:center; flex:1; }
@@ -88,6 +88,34 @@
       color:#fff; font-weight:600; cursor:pointer;
     }
 
+    /* Toast Notification */
+    #toastContainer {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideIn 0.3s forwards;
+    }
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideOut {
+      to { opacity: 0; transform: translateY(20px); }
+    }
+
     @media(max-width:900px){ .page{grid-template-columns:1fr; padding:20px 5%;} }
   </style>
 </head>
@@ -121,19 +149,34 @@
     </aside>
   </main>
 
+  <div id="toastContainer"></div>
+
 <script>
 const packsContainer = document.getElementById("packsContainer");
 const subtotalElement = document.getElementById("subtotal");
 const grandTotalElement = document.getElementById("grandTotal");
 const addPackBtn = document.getElementById("addPackBtn");
 const suggestGrid = document.getElementById("suggestGrid");
-const proceedCheckout = document.getElementById("proceedCheckout");
 
 let tastyPacks = JSON.parse(localStorage.getItem("tastyPacks")) || {};
 let activePack = localStorage.getItem("activePack") || "Pack 1";
 const deliveryFee = 500;
-const takeawayPrice = 200; // Hardcoded price per takeaway pack (₦200 each)
+const takeawayPrice = 200;
 
+// ---- Toast Notification ----
+function showToast(message) {
+  const toastContainer = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  toastContainer.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = "slideOut 0.3s forwards";
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// ---- Save & Render ----
 function saveData() {
   if (Object.keys(tastyPacks).length === 0) {
     localStorage.removeItem("tastyPacks");
@@ -152,12 +195,10 @@ function calcSubtotal() {
   return total;
 }
 
-// Calculate takeaway cost
 function calcTakeaway() {
   return Object.keys(tastyPacks).length * takeawayPrice;
 }
 
-// ---- Render ----
 function render() {
   packsContainer.innerHTML = "";
   let keys = Object.keys(tastyPacks);
@@ -165,6 +206,13 @@ function render() {
     packsContainer.innerHTML = `<p style="text-align:center;color:#777;">Your cart is empty. <a href='menu.html' style='color:#ff6600;'>Go to Menu</a></p>`;
     subtotalElement.textContent = "₦0";
     grandTotalElement.textContent = "₦0";
+    document.querySelector(".summary").innerHTML = `
+      <h3>Order Summary</h3>
+      <div class="summary-row"><div class="label">Subtotal</div><div>₦0</div></div>
+      <div class="summary-row"><div class="label">Delivery Fee</div><div>₦0</div></div>
+      <hr style="border:none;border-top:1px solid #eee;margin:8px 0;">
+      <div class="summary-row" style="font-size:1.15rem;font-weight:700;"><div>Total</div><div>₦0</div></div>
+    `;
     saveData();
     return;
   }
@@ -215,31 +263,22 @@ function render() {
   const takeawayTotal = calcTakeaway();
   const grandTotal = subtotal + deliveryFee + takeawayTotal;
 
-  subtotalElement.textContent = `₦${subtotal.toLocaleString()}`;
-
-  // Update summary DOM
-  const summary = document.querySelector(".summary");
-  summary.innerHTML = `
+  document.querySelector(".summary").innerHTML = `
     <h3>Order Summary</h3>
     <div class="summary-row"><div class="label">Subtotal</div><div id="subtotal">₦${subtotal.toLocaleString()}</div></div>
-    <div class="summary-row"><div class="label">Takeaway Packs</div><div id="takeawayTotal">₦${takeawayTotal.toLocaleString()} (${numPacks} pack${numPacks > 1 ? 's' : ''})</div></div>
-    <div class="summary-row"><div class="label">Delivery Fee</div><div id="deliveryFee">₦${deliveryFee.toLocaleString()}</div></div>
+    <div class="summary-row"><div class="label">Takeaway Packs</div><div>₦${takeawayTotal.toLocaleString()} (${numPacks} pack${numPacks>1?'s':''})</div></div>
+    <div class="summary-row"><div class="label">Delivery Fee</div><div>₦${deliveryFee.toLocaleString()}</div></div>
     <hr style="border:none;border-top:1px solid #eee;margin:8px 0;">
     <div class="summary-row" style="font-size:1.15rem;font-weight:700;"><div>Total</div><div id="grandTotal">₦${grandTotal.toLocaleString()}</div></div>
     <button class="checkout" id="proceedCheckout">Proceed to Checkout</button>
   `;
 
   document.getElementById("proceedCheckout").onclick = () => window.location.href = "checkout.html";
-
   saveData();
 }
 
 // ---- Controls ----
-function increaseQty(key, i) {
-  tastyPacks[key][i].qty++;
-  render();
-}
-
+function increaseQty(key, i) { tastyPacks[key][i].qty++; render(); }
 function decreaseQty(key, i) {
   let item = tastyPacks[key][i];
   if (item.qty > 1) item.qty--;
@@ -247,49 +286,23 @@ function decreaseQty(key, i) {
   if (tastyPacks[key].length === 0) delete tastyPacks[key];
   render();
 }
-
-function removePack(e, key) {
-  e.stopPropagation();
-  delete tastyPacks[key];
-  render();
-}
-
+function removePack(e, key) { e.stopPropagation(); delete tastyPacks[key]; render(); }
 function duplicatePack(e, key) {
   e.stopPropagation();
   const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
   tastyPacks[newKey] = JSON.parse(JSON.stringify(tastyPacks[key]));
   render();
 }
-
-function addMoreFood(packKey) {
-  activePack = packKey;
-  saveData();
-  window.location.href = "menu.html";
-}
-
-addPackBtn.onclick = () => {
-  const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`;
-  tastyPacks[newKey] = [];
-  activePack = newKey;
-  saveData();
-  window.location.href = "menu.html";
-};
-
-function setActivePack(key) {
-  activePack = key;
-  saveData();
-  render();
-}
+function addMoreFood(packKey) { activePack = packKey; saveData(); window.location.href = "menu.html"; }
+addPackBtn.onclick = () => { const newKey = `Pack ${Object.keys(tastyPacks).length + 1}`; tastyPacks[newKey] = []; activePack = newKey; saveData(); window.location.href = "menu.html"; };
+function setActivePack(key) { activePack = key; saveData(); render(); }
 
 // ---- Suggestions ----
 async function fetchSuggestions() {
   try {
     const res = await fetch("https://restaurant-eqbo.onrender.com/api/menu");
     const data = await res.json();
-    return data.filter(item => {
-      if (Array.isArray(item.category)) return item.category.includes("Extras");
-      return item.category === "Extras";
-    });
+    return data.filter(item => item.category?.includes("Extras"));
   } catch (err) {
     console.error("Error fetching suggestions:", err);
     return [];
@@ -315,12 +328,9 @@ function addSuggestion(name, price, img) {
   if (!tastyPacks[activePack]) tastyPacks[activePack] = [];
   tastyPacks[activePack].push({ name, price, img, qty: 1 });
   saveData();
-  alert(`${name} added to ${activePack}`);
+  showToast(`${name} added to ${activePack}`);
   render();
 }
-
-// ---- Checkout ----
-proceedCheckout.onclick = () => window.location.href = "checkout.html";
 
 // ---- Init ----
 renderSuggestions();
@@ -328,4 +338,4 @@ render();
 </script>
 
 </body>
-                                                                        </html>
+                                                                  </html>
