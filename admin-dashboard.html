@@ -218,42 +218,44 @@ document.addEventListener("DOMContentLoaded", () => {
   document.head.appendChild(socketScript);
 
   // ---------- OneSignal ----------
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-      OneSignal.init({
-          appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-          safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
-          notifyButton: { enable: true },
-          allowLocalhostAsSecureOrigin: true,
-          welcomeNotification: {
-              "title": "Welcome!",
-              "message": "You will receive notifications for new orders."
-          }
-      });
-
-      // ✅ Diagnostic & Auto Subscription Logic
-      OneSignal.push(function() {
-        OneSignal.getUserId().then(id => {
-          console.log("📡 Player ID:", id || "None");
-          if (!id) {
-            console.log("⚠️ No player ID. Prompting for subscription...");
-            OneSignal.showSlidedownPrompt();
-          }
-        });
-
-        OneSignal.getNotificationPermission().then(p => console.log("🔔 Permission:", p));
-        OneSignal.isPushNotificationsEnabled().then(enabled => console.log("✅ Push Enabled:", enabled));
-
-        OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
-          if (!isEnabled) {
-            console.log("🔄 Not subscribed, prompting again...");
-            OneSignal.showSlidedownPrompt();
-          }
-        });
-      });
-
-      OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function () {
+  OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+    safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
+    notifyButton: { enable: true },
+    allowLocalhostAsSecureOrigin: true,
+    welcomeNotification: {
+      title: "Welcome!",
+      message: "You will receive notifications for new orders.",
+    },
   });
+
+  OneSignal.setDefaultNotificationUrl(
+    "https://restaurant-plum.vercel.app/admin-dashboard.html"
+  );
+
+  // ✅ Diagnostic & Auto Subscription Logic
+  OneSignal.push(async function () {
+    const permission = await OneSignal.getNotificationPermission();
+    console.log("🔔 Permission:", permission);
+
+    const playerId = await OneSignal.getUserId();
+    console.log("📡 Player ID:", playerId || "None");
+
+    const isEnabled = await OneSignal.isPushNotificationsEnabled();
+    console.log("✅ Push Enabled:", isEnabled);
+
+    if (!isEnabled) {
+      console.log("🔄 Not subscribed, requesting push registration...");
+      await OneSignal.registerForPushNotifications();
+      const newId = await OneSignal.getUserId();
+      console.log("🎯 New Player ID:", newId);
+    } else {
+      console.log("✅ Already subscribed for push notifications");
+    }
+  });
+});
 
   // ---------- Sidebar Toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
