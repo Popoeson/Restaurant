@@ -231,17 +231,25 @@ document.addEventListener("DOMContentLoaded", () => {
           }
       });
 
-      OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-          console.log("✅ Push Notifications Enabled:", isEnabled);
-          if (!isEnabled) {
-              console.log("User is not subscribed. Showing prompt...");
-              OneSignal.showSlidedownPrompt();
+      // ✅ Diagnostic & Auto Subscription Logic
+      OneSignal.push(function() {
+        OneSignal.getUserId().then(id => {
+          console.log("📡 Player ID:", id || "None");
+          if (!id) {
+            console.log("⚠️ No player ID. Prompting for subscription...");
+            OneSignal.showSlidedownPrompt();
           }
-      });
+        });
 
-      OneSignal.getUserId(function(userId) {
-          if (userId) console.log("🆔 OneSignal User ID:", userId);
-          else console.log("⚠️ No OneSignal User ID yet. User not subscribed.");
+        OneSignal.getNotificationPermission().then(p => console.log("🔔 Permission:", p));
+        OneSignal.isPushNotificationsEnabled().then(enabled => console.log("✅ Push Enabled:", enabled));
+
+        OneSignal.isPushNotificationsEnabled().then((isEnabled) => {
+          if (!isEnabled) {
+            console.log("🔄 Not subscribed, prompting again...");
+            OneSignal.showSlidedownPrompt();
+          }
+        });
       });
 
       OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
@@ -347,6 +355,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
     });
   }
 });
-</script>
+          </script>
 </body>  
   </html>
