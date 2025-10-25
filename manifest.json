@@ -1,0 +1,25 @@
+{
+  "name": "TastyBite Restaurant",
+  "short_name": "TastyBite",
+  "description": "Delicious meals delivered fast — TastyBite Restaurant",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6600",
+  "id": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "uploads/food.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "uploads/food.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
