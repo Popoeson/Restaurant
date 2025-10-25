@@ -91,7 +91,7 @@
   <a href="admin-menu.html">Menu Management 🥪</a>  
   <a href="dispatch.html">Dispatch 🚲</a>  
     <a href="register.html">Register User 👤</a>
-  <a href="login.html">Logout</a>  
+  <a href="#" id="logoutBtn">Logout 🚪</a>
 </div>  
 
 <main>  
@@ -291,6 +291,21 @@ OneSignal.push(function() {
 
   loadDashboardData();
 });
+  
+  // ✅ Logout Logic
+  document.getElementById("logoutBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    if (confirm("Are you sure you want to log out?")) {
+      // Clear all session data
+      localStorage.removeItem("user");
+      localStorage.removeItem("orderNotifCount");
+
+      // Redirect to login
+      window.location.href = "login.html";
+    }
+  });
+
 </script>
 
   <script>
