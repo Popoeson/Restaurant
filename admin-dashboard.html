@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- SOCKET.IO ----------
   const socketScript = document.createElement("script");
- socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js";
+  socketScript.src = "https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js";
   socketScript.onload = () => {
     if (typeof io !== "undefined") {
       const socket = io(backendURL, { transports: ["websocket"] });
@@ -162,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
       socket.on("connect", () => console.log("✅ Connected to WebSocket server:", socket.id));
       socket.on("disconnect", () => console.warn("⚠️ Disconnected from WebSocket server"));
 
-      // Notification Bell Logic
       const notifIcon = document.getElementById("notifIcon");
       const savedCount = localStorage.getItem("orderNotifCount");
       notifIcon.setAttribute("data-count", savedCount || 0);
@@ -218,42 +217,35 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   document.head.appendChild(socketScript);
 
-// ---------- OneSignal ----------
-window.OneSignal = window.OneSignal || [];
-OneSignal.push(function() {
-    OneSignal.init({
-        appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-        safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
-        notifyButton: { enable: true }, // Show bell
-        allowLocalhostAsSecureOrigin: true,
-        welcomeNotification: {
-            "title": "Welcome!",
-            "message": "You will receive notifications for new orders."
-        }
-    });
+  // ---------- OneSignal ----------
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+      OneSignal.init({
+          appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+          safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
+          notifyButton: { enable: true },
+          allowLocalhostAsSecureOrigin: true,
+          welcomeNotification: {
+              "title": "Welcome!",
+              "message": "You will receive notifications for new orders."
+          }
+      });
 
-    // Check if user is already subscribed
-    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-        console.log("✅ Push Notifications Enabled:", isEnabled);
-        if (!isEnabled) {
-            console.log("User is not subscribed. Showing prompt...");
-            // Force the subscription prompt
-            OneSignal.showSlidedownPrompt();
-        }
-    });
+      OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+          console.log("✅ Push Notifications Enabled:", isEnabled);
+          if (!isEnabled) {
+              console.log("User is not subscribed. Showing prompt...");
+              OneSignal.showSlidedownPrompt();
+          }
+      });
 
-    // Log the OneSignal User ID
-    OneSignal.getUserId(function(userId) {
-        if (userId) {
-            console.log("🆔 OneSignal User ID:", userId);
-        } else {
-            console.log("⚠️ No OneSignal User ID yet. User not subscribed.");
-        }
-    });
+      OneSignal.getUserId(function(userId) {
+          if (userId) console.log("🆔 OneSignal User ID:", userId);
+          else console.log("⚠️ No OneSignal User ID yet. User not subscribed.");
+      });
 
-    // Optional: set default notification click URL
-    OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
-});
+      OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
+  });
 
   // ---------- Sidebar Toggle ----------
   document.getElementById("toggleMenu").addEventListener("click", () => {
@@ -291,24 +283,20 @@ OneSignal.push(function() {
 
   loadDashboardData();
 });
-  
-  // ✅ Logout Logic
-  document.getElementById("logoutBtn").addEventListener("click", (e) => {
-    e.preventDefault();
 
-    if (confirm("Are you sure you want to log out?")) {
-      // Clear all session data
-      localStorage.removeItem("user");
-      localStorage.removeItem("orderNotifCount");
 
-      // Redirect to login
-      window.location.href = "login.html";
-    }
-  });
+// ✅ Logout Logic
+document.getElementById("logoutBtn").addEventListener("click", (e) => {
+  e.preventDefault();
+  if (confirm("Are you sure you want to log out?")) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("orderNotifCount");
+    window.location.href = "login.html";
+  }
+});
 
-</script>
 
-  <script>
+// ✅ Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -317,6 +305,48 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('❌ SW registration failed:', err));
   });
 }
-  </script>
+
+
+// ✅ Admin-Only Install Prompt Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const isAdmin = user && user.role === "admin";
+
+  // Check if app is already installed
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  if (isAdmin && !isStandalone) {
+    const installBtn = document.createElement('button');
+    installBtn.textContent = '📲 Install Admin App';
+    installBtn.style = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff7b00;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 1000;
+    `;
+    document.body.appendChild(installBtn);
+
+    installBtn.addEventListener('click', async () => {
+      installBtn.remove();
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(outcome === 'accepted' ? '✅ App installed' : '❌ Installation dismissed');
+      deferredPrompt = null;
+    });
+  }
+});
+</script>
 </body>  
   </html>
