@@ -2,7 +2,7 @@
   "name": "TastyBite",
   "short_name": "TastyBite",
   "start_url": "/index.html",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#ffffff",
   "theme_color": "#ff6600",
   "icons": [
