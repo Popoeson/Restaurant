@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TastyBite | Delicious Food at Your Doorstep</title>
+  <!-- ✅ PWA + iOS support -->
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#ff6600" />
+
+<!-- iOS home-screen icons -->
+<link rel="apple-touch-icon" href="/uploads/icons/icon-192x192.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="/uploads/icons/icon-512x512.png" />
+
+<!-- Standalone mode for Safari iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TastyBite" />
 <style>
 * {margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
 body{background:#fff;color:#333;overflow-x:hidden;}
@@ -337,5 +349,16 @@ function filterMenu(category){
 fetchMenu();
 updateCartCount();
 </script>
+
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+      .catch(err => console.error('❌ SW registration failed:', err));
+  });
+}
+  </script>
 </body>
                                                      </html>
