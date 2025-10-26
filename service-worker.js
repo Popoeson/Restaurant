@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = "tastybite-cache-v2";
+const CACHE_NAME = "tastybite-cache-v3";
 const ASSETS = [
   "/",
   "/index.html",
@@ -28,27 +28,26 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// Only serve cached static assets. Always pass through API requests.
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
 
-  // Always let API calls go to network (no cache)
+  // 🔹 Never cache API requests — always go to the network
   if (url.pathname.startsWith("/api/") || url.origin !== location.origin) {
-    return event.respondWith(fetch(event.request).catch(() => caches.match("/offline.html")));
+    return event.respondWith(fetch(event.request).catch(() => new Response("Offline", { status: 503 })));
   }
 
-  // For other requests, return cached asset or fetch-and-cache
+  // 🔹 For other requests, use cache-first fallback
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Cache only GET and same-origin static responses
-        if (event.request.method === "GET" && response && response.status === 200 && response.type === "basic") {
+        // Cache only static GET requests
+        if (event.request.method === "GET" && response.status === 200 && response.type === "basic") {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         }
         return response;
-      }).catch(() => caches.match("/index.html"));
+      });
     })
   );
 });
