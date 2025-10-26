@@ -337,8 +337,14 @@ document.addEventListener("DOMContentLoaded", () => {
     })();
 
     OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
-  });
 
+// ✅ Register OneSignal’s own service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/OneSignalSDKWorker.js')
+    .then(reg => console.log('📲 OneSignal Service Worker registered:', reg.scope))
+    .catch(err => console.error('❌ OneSignal SW registration failed:', err));
+}
+});
   // ---------- service worker registration (unchanged) ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
