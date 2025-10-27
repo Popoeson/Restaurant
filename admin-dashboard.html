@@ -301,11 +301,10 @@ document.addEventListener("DOMContentLoaded", () => {
     _debTimer = setTimeout(()=> { fetchAndRenderStats(); _debTimer = null; }, 800);
   }
 
-// ---------- OneSignal setup & diagnostics ----------
-  
+  <!-- ---------- OneSignal setup & diagnostics ---------- -->
 window.OneSignal = window.OneSignal || [];
 OneSignal.push(function () {
-  // 👇 These must point to the local copies on your own domain
+  // 👇 Point to your local service worker files on your own domain
   OneSignal.SERVICE_WORKER_PATH = '/onesignal/OneSignalSDKWorker.js';
   OneSignal.SERVICE_WORKER_UPDATER_PATH = '/onesignal/OneSignalSDKUpdaterWorker.js';
   OneSignal.SERVICE_WORKER_PARAM = { scope: '/onesignal/' };
@@ -320,6 +319,7 @@ OneSignal.push(function () {
     serviceWorkerParam: { scope: '/onesignal/' },
   });
 
+  // ✅ Default URL when notification is clicked
   OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
 });
 
@@ -337,11 +337,6 @@ OneSignal.push(function () {
   }
 })();
 
-
-  // ✅ Default URL when notification is clicked
-  OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
-});
-  
   // ---------- service worker registration (unchanged) ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
