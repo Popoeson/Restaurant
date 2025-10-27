@@ -302,14 +302,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 // ---------- OneSignal setup & diagnostics ----------
+  
 window.OneSignal = window.OneSignal || [];
 OneSignal.push(function () {
-  // ✅ Define worker paths
-  OneSignal.SERVICE_WORKER_PARAM = { scope: '/onesignal/' };
+  // 👇 These must point to the local copies on your own domain
   OneSignal.SERVICE_WORKER_PATH = '/onesignal/OneSignalSDKWorker.js';
   OneSignal.SERVICE_WORKER_UPDATER_PATH = '/onesignal/OneSignalSDKUpdaterWorker.js';
+  OneSignal.SERVICE_WORKER_PARAM = { scope: '/onesignal/' };
 
-  // ✅ Initialize OneSignal
   OneSignal.init({
     appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
     safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
@@ -318,35 +318,25 @@ OneSignal.push(function () {
     serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
     serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js',
     serviceWorkerParam: { scope: '/onesignal/' },
-    welcomeNotification: {
-      title: "Welcome!",
-      message: "You’ll now receive notifications for new orders."
-    }
   });
 
-  // ---------- Diagnostics ----------
-  (async () => {
-    try {
-      const permission = await OneSignal.getNotificationPermission();
-      console.log("🔔 Permission:", permission);
+  OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
+});
 
-      const playerId = await OneSignal.getUserId();
-      console.log("📡 Player ID:", playerId || "None");
+// ---------- Optional Diagnostics ----------
+(async () => {
+  try {
+    const permission = await OneSignal.getNotificationPermission();
+    console.log("🔔 Permission:", permission);
+    const playerId = await OneSignal.getUserId();
+    console.log("📡 Player ID:", playerId || "None");
+    const enabled = await OneSignal.isPushNotificationsEnabled();
+    console.log("✅ Push Enabled:", enabled);
+  } catch (err) {
+    console.warn("OneSignal diagnostic error:", err);
+  }
+})();
 
-      const enabled = await OneSignal.isPushNotificationsEnabled();
-      console.log("✅ Push Enabled:", enabled);
-
-      if (!enabled) {
-        console.log("🔄 Not subscribed, requesting push registration...");
-        await OneSignal.showSlidedownPrompt();
-        await OneSignal.registerForPushNotifications();
-        const newId = await OneSignal.getUserId();
-        console.log("🎯 New Player ID:", newId || "None after prompt");
-      }
-    } catch (err) {
-      console.warn("⚠️ OneSignal diagnostic error:", err);
-    }
-  })();
 
   // ✅ Default URL when notification is clicked
   OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
