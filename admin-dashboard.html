@@ -313,13 +313,14 @@ OneSignal.push(function() {
       title: "Welcome!",
       message: "You will receive notifications for new orders."
     },
-    path: '/onesignal/OneSignalSDKWorker.js',
-serviceWorkerParam: { scope: '/onesignal/' },
-serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
-serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js'
+
+    // ✅ Correct service worker configuration
+    serviceWorkerParam: { scope: '/onesignal/' },
+    serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
+    serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js'
   });
 
-  // Diagnostics
+  // ---------- Diagnostics ----------
   (async () => {
     try {
       const permission = await OneSignal.getNotificationPermission();
