@@ -309,14 +309,16 @@ OneSignal.push(function () {
     safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
     notifyButton: { enable: true },
     allowLocalhostAsSecureOrigin: true,
-    subdomainName: "restaurant-plum", // ✅ helps OneSignal resolve correct origin
+    subdomainName: "restaurant-plum", // important for vercel hosted domains
     welcomeNotification: {
       title: "Welcome!",
       message: "You will receive notifications for new orders."
     },
+
+    // ✅ Correct worker references
     serviceWorkerParam: { scope: "/onesignal/" },
     serviceWorkerPath: "/onesignal/OneSignalSDKWorker.js",
-    serviceWorkerUpdaterPath: "/onesignal/OneSignalSDKUpdaterWorker.js"
+    serviceWorkerUpdaterPath: "/onesignal/OneSignalSDKUpdaterWorker.js",
   });
 
   // ---------- Diagnostics ----------
@@ -324,10 +326,8 @@ OneSignal.push(function () {
     try {
       const permission = await OneSignal.getNotificationPermission();
       console.log("🔔 Permission:", permission);
-
       const playerId = await OneSignal.getUserId();
       console.log("📡 Player ID:", playerId || "None");
-
       const enabled = await OneSignal.isPushNotificationsEnabled();
       console.log("✅ Push Enabled:", enabled);
 
@@ -343,9 +343,7 @@ OneSignal.push(function () {
     }
   })();
 
-  OneSignal.setDefaultNotificationUrl(
-    "https://restaurant-plum.vercel.app/admin-dashboard.html"
-  );
+  OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
 });
   
   // ---------- service worker registration (unchanged) ----------
