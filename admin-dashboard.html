@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     _debTimer = setTimeout(()=> { fetchAndRenderStats(); _debTimer = null; }, 800);
   }
 
-// ---------- OneSignal setup & diagnostics ----------
+  // ---------- OneSignal setup & diagnostics ----------
 window.OneSignal = window.OneSignal || [];
 OneSignal.push(function() {
   OneSignal.init({
@@ -314,8 +314,8 @@ OneSignal.push(function() {
       message: "You will receive notifications for new orders."
     },
     serviceWorkerParam: { scope: '/onesignal/' },
-    serviceWorkerPath: '/OneSignalSDKWorker.js',
-    serviceWorkerUpdaterPath: '/OneSignalSDKWorker.js'
+    serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
+    serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js'
   });
 
   // Diagnostics
