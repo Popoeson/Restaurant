@@ -301,7 +301,8 @@ document.addEventListener("DOMContentLoaded", () => {
     _debTimer = setTimeout(()=> { fetchAndRenderStats(); _debTimer = null; }, 800);
   }
 
-  <!-- ---------- OneSignal setup & diagnostics ---------- -->
+  //------------ OneSignal setup & diagnostics ------------//
+
 window.OneSignal = window.OneSignal || [];
 OneSignal.push(function () {
   // 👇 Point to your local service worker files on your own domain
