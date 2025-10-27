@@ -8,8 +8,8 @@
 <!-- PWA manifest & icons (keep as you had) -->
 <link rel="manifest" href="/manifest-admin.json" />
 <meta name="theme-color" content="#ff6600" />
-<link rel="apple-touch-icon" href="/uploads/icons/icon-192x192.png" />
-<link rel="apple-touch-icon" sizes="512x512" href="/uploads/icons/icon-512x512.png" />
+<link rel="apple-touch-icon" href="/uploads/food.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="/uploads/food.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="TastyBite" />
@@ -301,50 +301,48 @@ document.addEventListener("DOMContentLoaded", () => {
     _debTimer = setTimeout(()=> { fetchAndRenderStats(); _debTimer = null; }, 800);
   }
 
-  // ---------- OneSignal setup & diagnostics ----------
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
-      appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
-      safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
-      notifyButton: { enable: true },
-      allowLocalhostAsSecureOrigin: true,
-      welcomeNotification: { title: "Welcome!", message: "You will receive notifications for new orders." }
-    });
+// ---------- OneSignal setup & diagnostics ----------
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+  OneSignal.init({
+    appId: "fd07727d-eb83-4e33-b88d-70a1d271a4be",
+    safari_web_id: "web.onesignal.auto.1afe2633-50cf-455e-8f3e-a50d8cbe1d12",
+    notifyButton: { enable: true },
+    allowLocalhostAsSecureOrigin: true,
+    welcomeNotification: {
+      title: "Welcome!",
+      message: "You will receive notifications for new orders."
+    },
+    serviceWorkerParam: { scope: '/onesignal/' },
+    serviceWorkerPath: '/OneSignalSDKWorker.js',
+    serviceWorkerUpdaterPath: '/OneSignalSDKWorker.js'
+  });
 
-    // After init, check diagnostics and attempt registration if needed
-    (async () => {
-      try {
-        const permission = await OneSignal.getNotificationPermission();
-        console.log("🔔 Permission:", permission);
-        const playerId = await OneSignal.getUserId();
-        console.log("📡 Player ID:", playerId || "None");
-        const enabled = await OneSignal.isPushNotificationsEnabled();
-        console.log("✅ Push Enabled:", enabled);
+  // Diagnostics
+  (async () => {
+    try {
+      const permission = await OneSignal.getNotificationPermission();
+      console.log("🔔 Permission:", permission);
+      const playerId = await OneSignal.getUserId();
+      console.log("📡 Player ID:", playerId || "None");
+      const enabled = await OneSignal.isPushNotificationsEnabled();
+      console.log("✅ Push Enabled:", enabled);
 
-        if (!enabled) {
-          console.log("🔄 Not subscribed, requesting push registration...");
-          // show slidedown then register for push
-          OneSignal.showSlidedownPrompt().catch(()=>{});
-          // try register for push (some browsers need explicit call)
-          try { await OneSignal.registerForPushNotifications(); } catch(e){ /* ignore */ }
-          const newId = await OneSignal.getUserId();
-          console.log("🎯 New Player ID:", newId || "None after prompt");
-        }
-      } catch (err) {
-        console.warn("OneSignal diagnostic error:", err);
+      if (!enabled) {
+        console.log("🔄 Not subscribed, requesting push registration...");
+        await OneSignal.showSlidedownPrompt();
+        await OneSignal.registerForPushNotifications();
+        const newId = await OneSignal.getUserId();
+        console.log("🎯 New Player ID:", newId || "None after prompt");
       }
-    })();
+    } catch (err) {
+      console.warn("OneSignal diagnostic error:", err);
+    }
+  })();
 
-    OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
-
-// ✅ Register OneSignal’s own service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/OneSignalSDKWorker.js')
-    .then(reg => console.log('📲 OneSignal Service Worker registered:', reg.scope))
-    .catch(err => console.error('❌ OneSignal SW registration failed:', err));
-}
+  OneSignal.setDefaultNotificationUrl("https://restaurant-plum.vercel.app/admin-dashboard.html");
 });
+  
   // ---------- service worker registration (unchanged) ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
