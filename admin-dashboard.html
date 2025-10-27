@@ -313,9 +313,10 @@ OneSignal.push(function() {
       title: "Welcome!",
       message: "You will receive notifications for new orders."
     },
-    serviceWorkerParam: { scope: '/onesignal/' },
-    serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
-    serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js'
+    path: '/onesignal/OneSignalSDKWorker.js',
+serviceWorkerParam: { scope: '/onesignal/' },
+serviceWorkerPath: '/onesignal/OneSignalSDKWorker.js',
+serviceWorkerUpdaterPath: '/onesignal/OneSignalSDKUpdaterWorker.js'
   });
 
   // Diagnostics
